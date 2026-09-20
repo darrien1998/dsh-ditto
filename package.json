@@ -38,7 +38,7 @@
     "access": "public"
   },
   "bin": {
-    "dsh-ditto": "./dist/cli.js"
+    "dsh-ditto": "dist/cli.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
