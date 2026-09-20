@@ -1,6 +1,6 @@
 {
   "name": "dsh-ditto",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Review-first batch automation for DeepSeek Harness: evidence-backed Code to Spec plus safe bulk file organisation with complete manifests, reviewed sidecars, and deterministic ZIP delivery.",
   "type": "module",
   "license": "MIT",

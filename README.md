@@ -41,7 +41,7 @@ dsh plugin --profile web add dsh-ditto
 The doctor prints plain-language checks:
 
 ```text
-✓ Ditto 0.2.0
+✓ Ditto 0.3.0
 ✓ Node.js 22.23.1
 ✓ dsh 0.1.5-rc.1 detected
 ✓ pnpm 11.22.0 detected (used by "dsh plugin")

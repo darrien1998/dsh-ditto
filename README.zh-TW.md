@@ -41,7 +41,7 @@ dsh plugin --profile web add dsh-ditto
 doctor 用白話輸出檢查結果：
 
 ```text
-✓ Ditto 0.2.0
+✓ Ditto 0.3.0
 ✓ Node.js 22.23.1
 ✓ dsh 0.1.5-rc.1 detected
 ✓ pnpm 11.22.0 detected (used by "dsh plugin")

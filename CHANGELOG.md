@@ -4,9 +4,15 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-20
+
 ### Added
 
 - English and Traditional Chinese (`zh-TW`) localisation for both local review pages, selected by `--lang` before the browser language with a safe English fallback.
+
+### Fixed
+
+- The Windows tarball smoke test now executes Node directly when its installation path contains spaces.
 
 ## [0.2.0] - 2026-09-20
 
@@ -63,6 +69,7 @@ First public release.
 
 - A cross-drive path on Windows could be treated as inside the workspace by the native-tool boundary check; the core `within()` check is now used everywhere.
 
-[Unreleased]: https://github.com/darrien1998/dsh-ditto/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/darrien1998/dsh-ditto/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/darrien1998/dsh-ditto/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/darrien1998/dsh-ditto/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/darrien1998/dsh-ditto/releases/tag/v0.1.0

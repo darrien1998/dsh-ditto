@@ -60,7 +60,7 @@ try {
     "console.log('Mounted from the installed tarball: ' + tools.length + ' tools + skill \"' + skill.name + '\" (' + skill.source + '); clean unload.')",
   ].join('\n')
   writeFileSync(join(project, 'mount.mjs'), mountScript)
-  run(process.execPath, ['mount.mjs'], { cwd: project })
+  run(process.execPath, ['mount.mjs'], { cwd: project, shell: false })
   const cli = join(project, 'node_modules', '.bin', shell ? 'dsh-ditto.cmd' : 'dsh-ditto')
   const demo = capture(cli, ['demo', '--headless'], { cwd: project })
   if (!/16\/16 written · 0 failed · 0 source files modified/.test(demo)) throw new Error(`installed CLI demo did not complete:\n${demo}`)
