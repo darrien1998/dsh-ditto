@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- English and Traditional Chinese (`zh-TW`) localisation for both local review pages, selected by `--lang` before the browser language with a safe English fallback.
+
 ## [0.2.0] - 2026-09-20
 
 ### Added

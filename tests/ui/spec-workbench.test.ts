@@ -18,6 +18,22 @@ const browserBatch = (): SpecBatchLike => ({
   excluded: [{ relativePath: 'node_modules', reason: 'ignored-folder' }], summary: { excluded: 1 },
 })
 
+function executeClient(lang: 'en' | 'zh-TW' | undefined, browserLanguage: string): string {
+  const html = renderSpecWorkbench(browserBatch(), { csrfToken: 'csrf', lang })
+  const scripts = html.split('<script>').slice(1).map(part => part.split('</script>')[0])
+  const bootSource = scripts[0]!.replace('window.__DSH_DITTO_SPEC_BOOT__=', '').replace(/;$/, '')
+  const window = { __DSH_DITTO_SPEC_BOOT__: JSON.parse(bootSource) }
+  const node = () => ({ disabled: false, hidden: false, open: false, value: '', textContent: '', innerHTML: '', dataset: {}, className: '', addEventListener: () => undefined, focus: () => undefined })
+  const nodes = new Map<string, ReturnType<typeof node>>()
+  const document = {
+    documentElement: { lang: '', setAttribute: () => undefined }, title: 'Ditto · Code → Spec', head: { appendChild: () => undefined },
+    querySelector: (selector: string) => { if (!nodes.has(selector)) nodes.set(selector, node()); return nodes.get(selector)! },
+    querySelectorAll: () => [], createElement: () => node(),
+  }
+  new Function('window', 'document', 'navigator', 'fetch', 'matchMedia', scripts[1]!)(window, document, { language: browserLanguage }, async () => ({ ok: true, json: async () => ({}) }), () => ({ matches: false }))
+  return document.documentElement.lang
+}
+
 describe('specification review page', () => {
   it('renders actual sample ids, evidence line links, scan exclusions, and a locked batch action', () => {
     const html = renderSpecWorkbench(browserBatch(), { csrfToken: 'csrf</script>', demo: true })
@@ -51,6 +67,17 @@ describe('specification review page', () => {
 
   it('keeps a deterministic structural fallback for fixtures without recorded sample ids', () => {
     expect(representativeSpecModules(browserBatch().modules).map(item => item.id)).toEqual(['a', 'b', 'c'])
+  })
+
+  it('embeds explicit locale precedence and the shared locale table in the client script', () => {
+    const html = renderSpecWorkbench(browserBatch(), { csrfToken: 'csrf', lang: 'zh-TW' })
+    expect(html).toContain('"lang":"zh-TW"')
+    expect(html).toContain('typeof navigator')
+    expect(html).toContain("navigator.language==='zh-TW'?'zh-TW':'en'")
+    expect(html).toContain('document.documentElement.lang=locale')
+    expect(executeClient('zh-TW', 'en-US')).toBe('zh-TW')
+    expect(executeClient(undefined, 'zh-TW')).toBe('zh-TW')
+    expect(executeClient(undefined, 'de-DE')).toBe('en')
   })
 })
 

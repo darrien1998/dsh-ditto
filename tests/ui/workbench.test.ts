@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { renderWorkbench, representativeItems } from '../../src/ui/workbench.js';
 import type { Plan, PlanItem } from '../../src/core/types.js';
+import { supportedUiLocales, uiStrings } from '../../src/ui/strings.js';
 
 const item = (id: string, relativePath: string, classification: string): PlanItem => ({
   id, source: `C:/source/${relativePath}`, relativePath, destination: `${classification}/${relativePath}`,
@@ -14,7 +15,7 @@ const plan = (items: PlanItem[]): Plan => ({
   items, summary: { total: items.length, ready: items.length, applied: 0, rejected: 0, failed: 0 },
 });
 
-async function submitRecipe(postSucceeds: boolean) {
+async function submitRecipe(postSucceeds: boolean, lang?: 'en' | 'zh-TW', browserLanguage = 'en-US') {
   const saveButton = createNode();
   const recipeForm = createNode();
   recipeForm.querySelector = () => saveButton;
@@ -23,20 +24,21 @@ async function submitRecipe(postSucceeds: boolean) {
   nodes.set('#recipe-form', recipeForm);
   nodes.get('#recipe-name')!.value = 'My recipe';
   const document = {
+    documentElement: { lang: '', setAttribute: () => undefined }, title: 'Ditto · Organise files',
     querySelector: (selector: string) => selector === '[data-digest]' ? createNode() : nodes.get(selector),
     querySelectorAll: () => [],
     getElementById: () => createNode(),
   };
-  const html = renderWorkbench(plan([item('x', 'one.pdf', 'documents')]), { csrfToken: 'csrf' });
+  const html = renderWorkbench(plan([item('x', 'one.pdf', 'documents')]), { csrfToken: 'csrf', lang });
   const script = html.split('<script>').slice(1).map((part) => part.split('</script>')[0])[1]!;
-  const window = { __DSH_DITTO_BOOT__: { plan: plan([item('x', 'one.pdf', 'documents')]), options: { csrfToken: 'csrf', apiBase: '' } } };
+  const window = { __DSH_DITTO_BOOT__: { plan: plan([item('x', 'one.pdf', 'documents')]), options: { csrfToken: 'csrf', apiBase: '', lang, strings: uiStrings } } };
   const fetch = async (_url: string, init?: { method?: string }) => ({
     ok: init?.method === 'POST' ? postSucceeds : true,
     json: async () => init?.method === 'POST' ? (postSucceeds ? {} : { error: 'Save failed' }) : { recipes: [] },
   });
-  new Function('window', 'document', 'fetch', 'matchMedia', 'setTimeout', 'clearTimeout', script)(window, document, fetch, () => ({ matches: true }), () => 0, () => undefined);
+  new Function('window', 'document', 'navigator', 'fetch', 'matchMedia', 'setTimeout', 'clearTimeout', script)(window, document, { language: browserLanguage }, fetch, () => ({ matches: true }), () => 0, () => undefined);
   await recipeForm.listeners.submit({ preventDefault: () => undefined, currentTarget: recipeForm });
-  return saveButton;
+  return { saveButton, locale: document.documentElement.lang };
 }
 
 function createNode() {
@@ -70,8 +72,19 @@ describe('workbench', () => {
   });
 
   it.each([true, false])('re-enables the save-recipe button after a %s request result', async (postSucceeds) => {
-    const button = await submitRecipe(postSucceeds);
+    const { saveButton: button } = await submitRecipe(postSucceeds);
     expect(button.disabled).toBe(false);
     expect(button.hasAttribute('aria-busy')).toBe(false);
+  });
+
+  it('resolves explicit locale before browser locale and falls back for unsupported browser locales', async () => {
+    await expect(submitRecipe(true, 'zh-TW', 'en-US')).resolves.toMatchObject({ locale: 'zh-TW' });
+    await expect(submitRecipe(true, undefined, 'zh-TW')).resolves.toMatchObject({ locale: 'zh-TW' });
+    await expect(submitRecipe(true, undefined, 'fr-FR')).resolves.toMatchObject({ locale: 'en' });
+  });
+
+  it('defines every UI key for every supported locale', () => {
+    const englishKeys = Object.keys(uiStrings.en).sort();
+    for (const locale of supportedUiLocales) expect(Object.keys(uiStrings[locale]).sort()).toEqual(englishKeys);
   });
 });

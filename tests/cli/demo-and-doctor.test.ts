@@ -40,6 +40,18 @@ describe('headless demo', () => {
     expect(version.stdout.trim()).toBe(dittoVersion())
     // Two real Node/tsx process spawns; a loaded or virus-scanning machine needs room.
   }, 60_000)
+
+  it('validates explicit UI locales and lists the supported values', () => {
+    for (const args of [['help', '--lang'], ['help', '--lang', 'fr-FR']]) {
+      const result = spawnSync(process.execPath, [join('node_modules', 'tsx', 'dist', 'cli.mjs'), 'src/cli.ts', ...args], { cwd: process.cwd(), encoding: 'utf8', timeout: 60_000 })
+      expect(result.status).toBe(1)
+      expect(result.stderr).toContain('Supported locales: en, zh-TW')
+    }
+    for (const lang of ['en', 'zh-TW']) {
+      const result = spawnSync(process.execPath, [join('node_modules', 'tsx', 'dist', 'cli.mjs'), 'src/cli.ts', 'help', '--lang', lang], { cwd: process.cwd(), encoding: 'utf8', timeout: 60_000 })
+      expect(result.status).toBe(0)
+    }
+  })
 })
 
 describe('doctor', () => {

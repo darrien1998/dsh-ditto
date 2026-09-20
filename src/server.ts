@@ -6,6 +6,7 @@ import type { Plan, PlanEdit } from './core/types.js'
 import { withStateLock } from './core/state-paths.js'
 import { renderWorkbench } from './ui/workbench.js'
 import { renderSpecWorkbench, type SpecBatchLike } from './ui/spec-workbench.js'
+import type { UiLocale } from './ui/strings.js'
 import type { SpecBatch, SpecGenerator } from './spec/types.js'
 
 export interface LocalWorkbenchOptions {
@@ -14,6 +15,7 @@ export interface LocalWorkbenchOptions {
   stateRoot: string
   plan?: Plan
   recipe?: ReturnType<typeof defaultRecipe>
+  lang?: UiLocale
 }
 
 export interface LocalWorkbench {
@@ -32,6 +34,7 @@ export interface SpecWorkbenchServerOptions {
   instructions?: string
   /** Only use a deterministic generator for a labelled local demo or automated test. */
   demo?: boolean
+  lang?: UiLocale
 }
 
 const MAX_BODY_BYTES = 16 * 1024
@@ -45,7 +48,7 @@ export async function startLocalWorkbench(options: LocalWorkbenchOptions): Promi
   const server = createServer(async (request, response) => {
     try {
       if (!hasExpectedHost(request, server)) return respondJson(response, 421, { error: 'Only requests from this local review page are accepted.' })
-      const context = { stateRoot: options.stateRoot, csrfToken, getPlan: () => plan, setPlan: (next: Plan) => { plan = next }, sourceRoot: options.sourceRoot, destinationRoot: options.destinationRoot }
+      const context = { stateRoot: options.stateRoot, csrfToken, lang: options.lang, getPlan: () => plan, setPlan: (next: Plan) => { plan = next }, sourceRoot: options.sourceRoot, destinationRoot: options.destinationRoot }
       if (request.method === 'POST') await withMutationLock(() => route(request, response, context), tail => { mutationTail = tail }, mutationTail)
       else await route(request, response, context)
     }
@@ -70,7 +73,7 @@ export async function startSpecWorkbench(options: SpecWorkbenchServerOptions): P
   const server = createServer(async (request, response) => {
     try {
       if (!hasExpectedHost(request, server)) return respondJson(response, 421, { error: 'Only requests from this local review page are accepted.' })
-      const context = { csrfToken, getBatch: () => batch, setBatch: (next: SpecBatch) => { batch = next }, generator: options.generator, stateRoot: options.stateRoot, demo: options.demo ?? false }
+      const context = { csrfToken, lang: options.lang, getBatch: () => batch, setBatch: (next: SpecBatch) => { batch = next }, generator: options.generator, stateRoot: options.stateRoot, demo: options.demo ?? false }
       if (request.method === 'POST') await withMutationLock(() => specRoute(request, response, context), tail => { mutationTail = tail }, mutationTail)
       else await specRoute(request, response, context)
     } catch (error: unknown) { respondJson(response, statusFor(error), { error: messageFor(error) }) }
@@ -85,13 +88,14 @@ interface RouteContext {
   csrfToken: string
   sourceRoot: string
   destinationRoot: string
+  lang?: UiLocale
   getPlan(): Plan
   setPlan(plan: Plan): void
 }
 
 async function route(request: IncomingMessage, response: ServerResponse, context: RouteContext): Promise<void> {
   const method = request.method ?? 'GET'; const pathname = new URL(request.url ?? '/', 'http://localhost').pathname
-  if (method === 'GET' && pathname === '/') return respondHtml(response, renderWorkbench(context.getPlan(), { csrfToken: context.csrfToken }))
+  if (method === 'GET' && pathname === '/') return respondHtml(response, renderWorkbench(context.getPlan(), { csrfToken: context.csrfToken, lang: context.lang }))
   if (method === 'GET' && pathname === '/api/plan') return respondJson(response, 200, { plan: context.getPlan() })
   if (method === 'GET' && pathname === '/api/recipe') return respondJson(response, 200, { recipes: await listRecipes(context.stateRoot) })
   if (method !== 'POST' || !['/api/revise', '/api/apply', '/api/recipe', '/api/recipe/load'].includes(pathname)) return respondJson(response, 404, { error: 'Unknown local endpoint.' })
@@ -136,13 +140,14 @@ interface SpecRouteContext {
   stateRoot: string
   generator: SpecGenerator
   demo: boolean
+  lang?: UiLocale
   getBatch(): SpecBatch
   setBatch(batch: SpecBatch): void
 }
 
 async function specRoute(request: IncomingMessage, response: ServerResponse, context: SpecRouteContext): Promise<void> {
   const method = request.method ?? 'GET'; const pathname = new URL(request.url ?? '/', 'http://localhost').pathname
-  if (method === 'GET' && pathname === '/') return respondHtml(response, renderSpecWorkbench(specView(context.getBatch()), { csrfToken: context.csrfToken, samplesApproved: hasCurrentSampleApproval(context.getBatch()), canApply: isSpecBatchReadyToApply(context.getBatch()), demo: context.demo }))
+  if (method === 'GET' && pathname === '/') return respondHtml(response, renderSpecWorkbench(specView(context.getBatch()), { csrfToken: context.csrfToken, lang: context.lang, samplesApproved: hasCurrentSampleApproval(context.getBatch()), canApply: isSpecBatchReadyToApply(context.getBatch()), demo: context.demo }))
   if (method === 'GET' && pathname === '/api/spec/batch') return respondJson(response, 200, { batch: specView(context.getBatch()), samplesApproved: hasCurrentSampleApproval(context.getBatch()), canApply: isSpecBatchReadyToApply(context.getBatch()) })
   if (method !== 'POST' || !['/api/spec/revise', '/api/spec/approve', '/api/spec/generate', '/api/spec/apply'].includes(pathname)) return respondJson(response, 404, { error: 'Unknown local endpoint.' })
   if (!sameOrigin(request) || request.headers['x-dsh-csrf'] !== context.csrfToken) return respondJson(response, 403, { error: 'The request failed the local security check.' })
