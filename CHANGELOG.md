@@ -4,6 +4,11 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- Java (`.java`) language adapter for Code → Spec with text-only import and public top-level class, interface, enum, and record structural facts.
+- Java declaration-file exclusions for `package-info.java` and `module-info.java`, plus Maven `target/` discovery exclusion.
+
 ## [0.3.0] - 2026-09-20
 
 ### Added

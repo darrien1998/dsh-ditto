@@ -73,7 +73,7 @@ npx dsh-ditto demo              # the same batch in a local browser review page
 
 ## Example: Code → Spec
 
-Ditto's first use case is turning a TypeScript/JavaScript codebase into consistent, evidence-backed Markdown specifications.
+Ditto's first use case is turning a TypeScript/JavaScript or Java codebase into consistent, evidence-backed Markdown specifications.
 
 1. **Discover.** Ditto scans the folder (skipping `node_modules`, build output, tests, declaration files) and reports exactly what is in scope and what was excluded, and why.
 2. **Review three samples.** It picks three structurally different modules — the richest exporter, the module with the most imports, the smallest — and the agent drafts a spec for each from real, line-numbered source evidence. You edit the Markdown until it reads the way you want.
@@ -206,7 +206,7 @@ More in [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md).
 
 ## Contributing
 
-Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Good places to start: a language adapter for Python, Java, C#, or Go (the seam is small and documented), custom spec templates, better sample selection, UI localisation, and documentation examples. Look for the `good first issue` and `help wanted` labels.
+Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Good places to start: a language adapter for Python, C#, or Go (the seam is small and documented), custom spec templates, better sample selection, UI localisation, and documentation examples. Look for the `good first issue` and `help wanted` labels.
 
 ## Roadmap
 
