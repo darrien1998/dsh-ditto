@@ -83,6 +83,24 @@ describe('Java language adapter', () => {
     ).toEqual(['Payment'])
   })
 
+  it('recognises annotations between public modifiers and the type keyword', () => {
+    expect(
+      javaFacts('public @Deprecated class Foo {}').exports,
+    ).toEqual(['Foo'])
+
+    expect(
+      javaFacts('public final @Deprecated class Bar {}').exports,
+    ).toEqual(['Bar'])
+
+    expect(
+      javaFacts('public @Deprecated final class Baz {}').exports,
+    ).toEqual(['Baz'])
+
+    expect(
+      javaFacts('public @SuppressWarnings("unused") final class Qux {}').exports,
+    ).toEqual(['Qux'])
+  })
+
   it('claims Java files and excludes declaration-style Java files', () => {
     expect([...java.extensions]).toEqual(['.java'])
 

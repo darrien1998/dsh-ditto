@@ -123,7 +123,7 @@ export function javaFacts(text: string): StructuralFacts {
   }
 
   const declaration =
-    /\bpublic\s+(?:(?:abstract|final|sealed|non-sealed|strictfp)\s+)*(?:class|interface|enum|record)\s+([A-Za-z_$][\w$]*)\b/g
+    /\bpublic\s+(?:(?:(?:abstract|final|sealed|non-sealed|strictfp)|@[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*(?:\s*\((?:[^()]|\([^()]*\))*\))?)\s+)*(?:class|interface|enum|record)\s+([A-Za-z_$][\w$]*)\b/g
 
   for (const match of source.matchAll(declaration)) {
     if (match.index !== undefined && depthAt[match.index] === 0) {
