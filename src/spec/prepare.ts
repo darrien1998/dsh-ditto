@@ -6,7 +6,7 @@ import { canonicalPath, samePath, within } from '../core/paths.js'
 import { DEFAULT_ADAPTERS, adapterFor, validateAdapters, type LanguageAdapter } from './languages/index.js'
 import { MAX_SPEC_MODULES, MIN_SPEC_MODULES, type CreateSpecBatchOptions, type EvidenceChunk, type SpecBatch, type SpecBatchSummary, type SpecDiscovery, type SpecExclusion, type SpecModule } from './types.js'
 
-const IGNORED_FOLDERS = new Set(['.git', 'node_modules', '.dsh-ditto', 'dist', 'build', 'out', 'generated', 'coverage', 'test', 'tests', '__tests__', 'vendor'])
+const IGNORED_FOLDERS = new Set(['.git', 'node_modules', '.dsh-ditto', 'dist', 'build', 'out', 'target', 'generated', 'coverage', 'test', 'tests', '__tests__', 'vendor'])
 const MAX_SOURCE_BYTES = 1_000_000
 const EVIDENCE_LINES = 24
 

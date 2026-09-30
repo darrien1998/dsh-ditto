@@ -73,7 +73,7 @@ npx dsh-ditto demo              # 同一批工作，在本機瀏覽器審閱頁�
 
 ## 範例：程式碼 → 規格
 
-Ditto 的第一個用途：把 TypeScript／JavaScript 程式庫變成格式一致、每句都有來源證據的 Markdown 規格。
+Ditto 的第一個用途：把 TypeScript／JavaScript 或 Java 程式庫變成格式一致、每句都有來源證據的 Markdown 規格。
 
 1. **掃描。** 掃描資料夾（略過 `node_modules`、建置輸出、測試、宣告檔），清楚列出哪些在範圍內、哪些被排除以及原因。
 2. **審閱三份樣本。** 挑出三個結構不同的模組——匯出最多的、import 最多的、最小的——agent 依真實、帶行號的來源證據各寫一份規格。你直接改 Markdown，改到你要的樣子。
@@ -188,7 +188,7 @@ npm run smoke:profile    # 在隔離 DSH_HOME 用真實 `dsh plugin add` 安裝�
 
 ## 貢獻
 
-歡迎 issue 與 pull request，請看 [CONTRIBUTING.md](CONTRIBUTING.md)。適合入手的方向：Python、Java、C#、Go 的 language adapter（介面很小、有文件）、自訂規格範本、更好的樣本挑選、UI 在地化、文件範例。可以從 `good first issue` 與 `help wanted` 標籤開始。
+歡迎 issue 與 pull request，請看 [CONTRIBUTING.md](CONTRIBUTING.md)。適合入手的方向：Python、C#、Go 的 language adapter（介面很小、有文件）、自訂規格範本、更好的樣本挑選、UI 在地化、文件範例。可以從 `good first issue` 與 `help wanted` 標籤開始。
 
 ## 路線圖
 

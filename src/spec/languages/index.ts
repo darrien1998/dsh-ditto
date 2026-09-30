@@ -1,12 +1,17 @@
 import { extname } from 'node:path'
+import { java } from './java.js'
 import { typescript } from './typescript.js'
 import type { LanguageAdapter } from './types.js'
 
 export type { LanguageAdapter } from './types.js'
+export { java, javaFacts } from './java.js'
 export { typescript, typescriptFacts } from './typescript.js'
 
 /** Adapters shipped with Ditto. Community adapters can be passed through `CreateSpecBatchOptions.adapters`. */
-export const DEFAULT_ADAPTERS: readonly LanguageAdapter[] = [typescript]
+export const DEFAULT_ADAPTERS: readonly LanguageAdapter[] = [
+  typescript,
+  java,
+]
 
 export function validateAdapters(adapters: readonly LanguageAdapter[]): void {
   if (!Array.isArray(adapters) || adapters.length === 0 || adapters.length > 20) throw new Error('At least one language adapter is required')
