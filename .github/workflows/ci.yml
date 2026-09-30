@@ -56,7 +56,8 @@ jobs:
       - run: npm run build
       - name: Install pnpm and the DSH launcher
         run: |
-          npm install -g pnpm
+          # Keep the real-profile smoke on a verified pnpm release.
+          npm install -g pnpm@12.5.1
           npm install -g @deepseek-ai/dsh@${{ matrix.dsh }}
           dsh --version
       - name: dsh plugin add, boot, doctor (isolated DSH_HOME)
