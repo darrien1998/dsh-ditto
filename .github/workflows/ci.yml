@@ -58,8 +58,9 @@ jobs:
         run: |
           # Keep the real-profile smoke on a verified pnpm release.
           npm install -g pnpm@12.5.1
-          npm install -g @deepseek-ai/dsh@${{ matrix.dsh }}
+          npm install -g @deepseek-ai/dsh@${{ matrix.dsh }} @deepseek-ai/dsh-sandbox-local@${{ matrix.dsh }}
           dsh --version
+          npm ls -g @deepseek-ai/dsh-sandbox-local --all || true
       - name: dsh plugin add, boot, doctor (isolated DSH_HOME)
         env:
           CI: 'true'

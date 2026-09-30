@@ -48,7 +48,7 @@ function bootProfile(profile, env) {
     const timer = setTimeout(() => { stop(child); resolvePromise({ booted: true, stayedUp: true, output }) }, BOOT_GRACE_MS)
     // A profile without an interactive app can legitimately exit 0 straight away;
     // what matters is that the plugin tree loaded without an error.
-    child.once('exit', code => { clearTimeout(timer); if (code === 0) resolvePromise({ booted: true, stayedUp: false, output }); else reject(new Error(`dsh --profile ${profile} exited ${code}:\n${output.slice(0, 3000)}`)) })
+    child.once('exit', code => { clearTimeout(timer); if (code === 0) resolvePromise({ booted: true, stayedUp: false, output }); else reject(new Error(`dsh --profile ${profile} exited ${code}:\n${output.slice(-12_000)}`)) })
     child.once('error', error => { clearTimeout(timer); reject(error) })
   })
 }
