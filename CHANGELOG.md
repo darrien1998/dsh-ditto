@@ -9,6 +9,10 @@ All notable changes to this project are documented here. The format follows [Kee
 - Java (`.java`) language adapter for Code → Spec with text-only import and public top-level class, interface, enum, and record structural facts.
 - Java declaration-file exclusions for `package-info.java` and `module-info.java`, plus Maven `target/` discovery exclusion.
 
+### Fixed
+
+- CI canary installs now use the Cordis version required by each DSH tag, and the real-profile smoke verifies the current 0.1.5-rc.3 launcher.
+
 ## [0.3.0] - 2026-09-20
 
 ### Added

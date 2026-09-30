@@ -6,9 +6,10 @@ DeepSeek Harness is pre-1.0 and moves quickly. Ditto declares exactly which vers
 
 | Ditto | DSH launcher / components | Node.js | OS | Status | Evidence |
 |---|---|---|---|---|---|
-| 0.2.0 | `@deepseek-ai/dsh` 0.1.5-rc.1 with `dsh-tools` / `dsh-skill` 0.1.5-rc.1 | 22, 24 | Ubuntu, Windows | **release candidate** | build, unit/safety suite, component-host smoke, generated-doc check, packed-tarball smoke, and a real isolated-`DSH_HOME` profile install, boot, and in-profile doctor run |
-| 0.2.0 | `@deepseek-ai/dsh` launcher 0.1.5-rc.2, whose installed closure resolves rc.2 components | 24 | Windows | **verified locally** | `npm run smoke:profile` passed end to end: `dsh plugin add` from the packed tarball, profile boot with Ditto in the tree, and in-profile doctor reporting 17 of 17 tools |
-| 0.2.0 | `dsh-tools` / `dsh-skill` `next` / `alpha` | 22, 24 | CI matrix | **canary** | non-blocking compatibility jobs |
+| 0.3.0 | `@deepseek-ai/dsh` launcher 0.1.5-rc.3 | 22 | Ubuntu | **supported** | current CI real-profile install, boot, and in-profile doctor |
+| 0.3.0 | `dsh-tools` / `dsh-skill` 0.1.5-rc.1 | 22, 24 | Ubuntu, Windows | **regression coverage** | build, unit/safety suite, component-host smoke, generated-doc check, and packed-tarball smoke |
+| 0.3.0 | `dsh-tools` / `dsh-skill` `next` / `alpha` | 22 | Ubuntu | **canary** | non-blocking compatibility jobs with the matching Cordis peer version |
+| 0.2.0 | `@deepseek-ai/dsh` 0.1.5-rc.1 and rc.2 | 22, 24 | Ubuntu, Windows | **historically verified** | earlier real-profile install, boot, and in-profile doctor runs |
 | 0.1.0 | `@deepseek-ai/dsh` 0.1.5-rc.1 / rc.2 | 22, 24 | Ubuntu, Windows | **supported historical release** | 0.1 release gates and real profile smoke |
 
 "Supported" means the complete gate passes; "canary" means we run against it so an upstream breaking change is noticed early, but it is not a promise.
@@ -25,7 +26,7 @@ DeepSeek Harness is pre-1.0 and moves quickly. Ditto declares exactly which vers
 ## Known upstream quirks
 
 - The npm `latest` dist-tag of `@deepseek-ai/dsh-tools` pointed at a stale `0.0.1-rc.1` when this was written. Always install DSH packages with an explicit version or the `next`/`alpha` tags; Ditto's peer range starts at 0.1.5-rc.1.
-- Published DSH packages declare `^0.1.5-rc.x` ranges across each other, so an npm install can mix rc.1 and rc.2 components. A DSH profile installs one consistent closure; the tarball smoke pins the closure with npm `overrides` for the same reason.
+- Published DSH packages declare `^0.1.5-rc.x` ranges across each other. A fresh 0.1.5-rc.1 launcher install now resolves rc.3 components and fails to boot the sandbox plugin. The real-profile CI job therefore installs the current rc.3 launcher; the component and tarball jobs retain rc.1 regression coverage. The tarball smoke pins its DSH closure with npm `overrides`.
 - `dsh --profile <name> --dump-config` composes the plugin tree but does not create the module fallback links; a first real boot does. If `dsh plugin --profile <name> exec dsh-ditto doctor` reports that `@deepseek-ai/cordis` is not resolvable, boot the profile once and run the doctor again.
 
 ## How CI catches a breaking change

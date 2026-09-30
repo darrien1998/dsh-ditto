@@ -58,7 +58,7 @@ function stop(child) {
 }
 
 const dsh = captureDsh(['--version'])
-if (!dsh.ok) { console.error('dsh is not on PATH; install it first: npm install -g @deepseek-ai/dsh@0.1.5-rc.1'); process.exit(process.env.CI ? 1 : 0) }
+if (!dsh.ok) { console.error(`dsh is not on PATH; install it first: npm install -g @deepseek-ai/dsh@${process.env.DITTO_DSH_VERSION ?? '0.1.5-rc.3'}`); process.exit(process.env.CI ? 1 : 0) }
 const pnpm = capture('pnpm', ['--version'])
 if (!pnpm.ok) { console.error('pnpm is not on PATH; dsh plugin needs it (npm install -g pnpm)'); process.exit(process.env.CI ? 1 : 0) }
 console.log(`dsh ${dsh.stdout.trim()} · pnpm ${pnpm.stdout.trim()}`)

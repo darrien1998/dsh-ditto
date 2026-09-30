@@ -9,7 +9,7 @@ npm ci
 npm run build
 ```
 
-Node.js 22 or later. The dev dependencies pin the supported DSH packages (`@deepseek-ai/dsh-tools`, `dsh-skill`, `dsh-system-prompt`, `dsh-user-approval` at 0.1.5-rc.1, `@deepseek-ai/cordis` 4.0.2); the tests mount the plugin on those real packages, not on mocks. A DSH launcher is only needed for the profile smoke.
+Node.js 22 or later. The dev dependencies pin the DSH 0.1.5-rc.1 component packages (`@deepseek-ai/dsh-tools`, `dsh-skill`, `dsh-system-prompt`, `dsh-user-approval`) and `@deepseek-ai/cordis` 4.0.2 for regression coverage; the tests mount the plugin on those real packages, not on mocks. CI also boots the current 0.1.5-rc.3 launcher in a real profile. A DSH launcher is only needed for the profile smoke.
 
 ## Commands
 
