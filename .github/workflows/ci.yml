@@ -45,7 +45,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dsh: ['0.1.5-rc.1']
+        dsh: ['0.1.5-rc.3']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -56,12 +56,14 @@ jobs:
       - run: npm run build
       - name: Install pnpm and the DSH launcher
         run: |
-          npm install -g pnpm
+          # Keep the real-profile smoke on a verified pnpm release.
+          npm install -g pnpm@12.5.1
           npm install -g @deepseek-ai/dsh@${{ matrix.dsh }}
           dsh --version
       - name: dsh plugin add, boot, doctor (isolated DSH_HOME)
         env:
           CI: 'true'
+          DITTO_DSH_VERSION: ${{ matrix.dsh }}
         run: npm run smoke:profile
 
   canary:

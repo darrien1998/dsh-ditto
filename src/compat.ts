@@ -15,8 +15,8 @@ export function dittoVersion(): string {
 export const COMPATIBILITY = {
   node: { minimum: 22, tested: [22, 24] },
   dsh: {
-    supported: ['0.1.5-rc.1', '0.1.5-rc.2'],
-    canary: ['0.1.6-alpha.1'],
+    supported: ['0.1.5-rc.3'],
+    canary: ['0.1.7-alpha.2', '0.2.0-rc.2'],
     /** Ranges the plugin's peerDependencies accept. */
     peerRange: { '@deepseek-ai/cordis': '^4.0.2', '@deepseek-ai/dsh-tools': '>=0.1.5-rc.1 <0.2.0' },
   },

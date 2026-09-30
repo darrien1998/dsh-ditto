@@ -48,7 +48,7 @@ function bootProfile(profile, env) {
     const timer = setTimeout(() => { stop(child); resolvePromise({ booted: true, stayedUp: true, output }) }, BOOT_GRACE_MS)
     // A profile without an interactive app can legitimately exit 0 straight away;
     // what matters is that the plugin tree loaded without an error.
-    child.once('exit', code => { clearTimeout(timer); if (code === 0) resolvePromise({ booted: true, stayedUp: false, output }); else reject(new Error(`dsh --profile ${profile} exited ${code}:\n${output.slice(0, 3000)}`)) })
+    child.once('exit', code => { clearTimeout(timer); if (code === 0) resolvePromise({ booted: true, stayedUp: false, output }); else reject(new Error(`dsh --profile ${profile} exited ${code}:\n${output.replace(/token=[^\s]+/g, 'token=[redacted]').slice(-12_000)}`)) })
     child.once('error', error => { clearTimeout(timer); reject(error) })
   })
 }
@@ -58,7 +58,7 @@ function stop(child) {
 }
 
 const dsh = captureDsh(['--version'])
-if (!dsh.ok) { console.error('dsh is not on PATH; install it first: npm install -g @deepseek-ai/dsh@0.1.5-rc.1'); process.exit(process.env.CI ? 1 : 0) }
+if (!dsh.ok) { console.error(`dsh is not on PATH; install it first: npm install -g @deepseek-ai/dsh@${process.env.DITTO_DSH_VERSION ?? '0.1.5-rc.3'}`); process.exit(process.env.CI ? 1 : 0) }
 const pnpm = capture('pnpm', ['--version'])
 if (!pnpm.ok) { console.error('pnpm is not on PATH; dsh plugin needs it (npm install -g pnpm)'); process.exit(process.env.CI ? 1 : 0) }
 console.log(`dsh ${dsh.stdout.trim()} · pnpm ${pnpm.stdout.trim()}`)
