@@ -31,7 +31,7 @@ The core value is not a smarter model. It is that a batch of 20–50 similar ite
 | `src/dsh/config.ts` | Plugin configuration and its validation |
 | `src/core/*` | File-organisation engine: Recipe v1/v2 and RE2 matching, plans/exceptions, sidecar rendering (`artifacts.ts`), streamed deterministic ZIP (`zip.ts`), safe state paths and cross-process locks (`state-paths.ts`), digests and safe apply |
 | `src/spec/*` | Code → Spec engine: discovery, evidence chunks, draft validation, deterministic Markdown rendering, approval/recipe transitions, cached generation, safe write apply |
-| `src/spec/languages/*` | The `LanguageAdapter` seam (TypeScript/JavaScript shipped) |
+| `src/spec/languages/*` | The `LanguageAdapter` seam (TypeScript/JavaScript, Java, and Python shipped) |
 | `src/server.ts`, `src/ui/*` | Optional loopback-only review pages (no CDN, no third-party assets), used by the demo and `dsh-ditto serve` |
 | `src/cli.ts`, `src/demo.ts`, `src/doctor.ts` | `dsh-ditto` command: demos, doctor, local page |
 | `cordis.patch.yml` | The bundle patch DSH applies when the package is installed into a profile |
@@ -50,9 +50,9 @@ The core value is not a smarter model. It is that a batch of 20–50 similar ite
    ```
 
 3. The loader imports `dsh-ditto/dsh` (the `./dsh` export) and mounts `DshDitto` once its injected services (`tools`, `skills`) are available. Both come from `@deepseek-ai/dsh-base`, which every shipped profile except `sdk-minimal` includes.
-4. Everything Ditto registers is a Cordis effect of its own fiber. Unloading the bundle, or a live reload of the patch layer, disposes the fiber and removes the skill, all 17 tools, and the `dshDitto` service. The test `registers the bundled skill … and removes them on unload` covers this on the real registry.
+4. Everything Ditto registers is a Cordis effect of its own fiber. Unloading the bundle, or a live reload of the patch layer, disposes the fiber and removes the skill, all 18 tools, and the `dshDitto` service. The test `registers the bundled skill … and removes them on unload` covers this on the real registry.
 
-Module resolution follows DSH's two-anchor rule: the profile's own `node_modules` first, then the installation's dependency closure through `$DSH_HOME/profiles/node_modules`. That is why `@deepseek-ai/cordis` and `@deepseek-ai/dsh-tools` are **peerDependencies** — a second copy of the core inside the profile would give the plugin different `Service`/`Context` classes from the host's.
+Module resolution follows DSH's two-anchor rule: the profile's own dependencies first, then the installation's dependency closure through the host's runtime resolver. DSH 0.2 does not project this closure into standalone CLI resolution. `ditto_doctor` inspects the active instance; a standalone doctor only mounts a component host when its peers are locally resolvable. That is why `@deepseek-ai/cordis` and `@deepseek-ai/dsh-tools` are **peerDependencies** — a second copy of the core inside the profile would give the plugin different `Service`/`Context` classes from the host's.
 
 ## Configuration
 

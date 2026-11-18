@@ -5,7 +5,8 @@ import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 import SkillRegistry from '@deepseek-ai/dsh-skill'
 import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
-import ToolRuntime from '@deepseek-ai/dsh-tools'
+import ToolRuntime, { type ToolExecutionResult } from '@deepseek-ai/dsh-tools'
+import * as NativeExecutor from '@deepseek-ai/dsh-tool-executor-native'
 import { afterEach, describe, expect, it } from 'vitest'
 import { DshDitto } from '../../src/dsh/index.js'
 import { resolveConfig } from '../../src/dsh/config.js'
@@ -18,16 +19,18 @@ async function host(): Promise<Context> {
   const ctx = new Context()
   await ctx.plugin(SkillRegistry, {})
   await ctx.plugin(SystemPrompt, {})
-  await ctx.plugin(ToolRuntime, { mode: 'native' })
+  await ctx.plugin(ToolRuntime, {})
+  await ctx.plugin(NativeExecutor, {})
   return ctx
 }
 
 let callNumber = 0
 async function call(ctx: Context, name: string, arguments_: unknown) {
-  return ctx.tools.execute({ callId: `v02-${++callNumber}` as never, name, arguments: arguments_, signal: new AbortController().signal })
+  const batch = await ctx.tools.execute({ calls: [{ type: 'tool-call', id: `v02-${++callNumber}` as never, name, arguments: JSON.stringify(arguments_) }], signal: new AbortController().signal })
+  return batch.results[0]!.result
 }
 
-function value(result: Awaited<ReturnType<ToolRuntime['execute']>>): Record<string, unknown> {
+function value(result: ToolExecutionResult): Record<string, unknown> {
   if (result.isError) throw new Error(result.error.message)
   return result.value as Record<string, unknown>
 }

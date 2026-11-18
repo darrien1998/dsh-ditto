@@ -4,7 +4,7 @@
 
 ## How I verified it
 
-- [ ] `npm test` passes (Node 22 or 24)
+- [ ] `npm test` passes (Node 24 or 26)
 - [ ] `npm run smoke:dsh` passes
 - [ ] `npm run docs:tools -- --check` passes (or `docs/TOOLS.md` regenerated if a tool changed)
 - [ ] For a safety-related change: a new or updated test, and the row in `docs/SAFETY.md`

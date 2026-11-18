@@ -1,5 +1,7 @@
 # Launch kit
 
+> Historical launch copy for earlier releases. Current 0.4 installation, supported versions, Java/Python coverage, and diagnostics are documented in README.md and COMPATIBILITY.md. Do not reuse the historical version claims below for a new release.
+
 > **Historical note:** the long-form posts below are the preserved 0.1 first-release kit. Their `v0.1.0` and 14-tool claims are historical and must not be reused as current 0.2 facts.
 
 ## 0.2 release note

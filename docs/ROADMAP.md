@@ -20,13 +20,21 @@ Ditto stays small, understandable, safe, DSH-native, and review-first. The roadm
 - Fail-closed host-approval `unavailable` handling with explicit profile-owner agent fallback
 - Link-hardened state, cross-process mutation locks, v1 compatibility fixtures, and 174-file acceptance coverage
 
+## 0.4 — current DSH and diagnostics
+
+- DSH 0.2.2-rc.4 / Cordis 4.1 baseline, Node.js 24.9+, and the separate native executor
+- 18 native tools including active-instance `ditto_doctor`; standalone `doctor --json`
+- Java and Python adapters, mixed-language evidence/review/apply/resume, Python environment exclusions
+- Cancellation checked before approval and after a delayed grant; invalid doctor folders and CLI options rejected
+- Real-profile smoke requires successful active registration checks, not only a running process
+
 ## Next — help wanted
 
 These are scoped so a contributor can take one without touching the safety core. Look for the matching labels in the issue tracker.
 
 | Area | Item | Label |
 |---|---|---|
-| Language adapters | Python (`.py`: `def`/`class`/`import`), Java, C#, Go — one file each behind the `LanguageAdapter` seam | `language adapter`, `good first issue` |
+| Language adapters | C#, Go — one file each behind the `LanguageAdapter` seam | `language adapter`, `good first issue` |
 | Spec templates | User-selectable section sets and headings (for example an "API reference" template or a "behaviour before refactor" template), validated the same way as today | `enhancement` |
 | Sample selection | Better spread than "most exports / most imports / smallest" — for example by folder, by framework role, or by duplication | `enhancement`, `help wanted` |
 | DSH Web | A native review panel in the DSH web UI instead of the loopback page | `ui`, `dsh compatibility` |
@@ -37,7 +45,6 @@ These are scoped so a contributor can take one without touching the safety core.
 ## Later, maybe
 
 - Batches larger than 50 modules as linked sub-batches
-- A `ditto_doctor` native tool so the agent can self-diagnose
 - Per-user default instructions and templates
 
 ## Not planned

@@ -9,7 +9,7 @@
 //   4. `dsh plugin --profile ditto-smoke exec dsh-ditto doctor` passes inside the profile
 // Needs `dsh` and `pnpm` on PATH.
 import { spawn, spawnSync } from 'node:child_process'
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -20,7 +20,9 @@ const desktopExe = desktopRoot ? join(desktopRoot, 'DSH Desktop.exe') : ''
 const desktopCli = desktopRoot ? join(desktopRoot, 'resources', 'app', 'lib', 'desktop-cli.js') : ''
 // DSH Desktop's generated dsh.cmd intentionally pins DSH_HOME to the user's
 // real profile. Bypass that wrapper so this smoke remains genuinely isolated.
-const dshLauncher = desktopExe && existsSync(desktopExe) && existsSync(desktopCli)
+const dshLauncher = process.env.DITTO_DSH_CLI
+  ? { command: process.execPath, prefix: [process.env.DITTO_DSH_CLI], shell: false }
+  : desktopExe && existsSync(desktopExe) && existsSync(desktopCli)
   ? { command: desktopExe, prefix: ['--expose-internals', desktopCli], shell: false }
   : { command: 'dsh', prefix: [], shell }
 const BOOT_GRACE_MS = Number(process.env.DITTO_BOOT_GRACE_MS ?? 25_000)
@@ -41,7 +43,7 @@ function must(result, what) {
 /** Boot the profile; resolve once it is still running after the grace period, or when it exits cleanly. */
 function bootProfile(profile, env) {
   return new Promise((resolvePromise, reject) => {
-    const child = spawn(dshLauncher.command, [...dshLauncher.prefix, '--profile', profile], { env, shell: dshLauncher.shell, stdio: ['ignore', 'pipe', 'pipe'] })
+    const child = spawn(dshLauncher.command, [...dshLauncher.prefix, '--profile', profile, '--patch', join(env.DSH_HOME, 'verify.patch.yml'), '--no-open', '--port', '0'], { env, shell: dshLauncher.shell, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] })
     let output = ''
     child.stdout.on('data', chunk => { output += chunk })
     child.stderr.on('data', chunk => { output += chunk })
@@ -58,18 +60,33 @@ function stop(child) {
 }
 
 const dsh = captureDsh(['--version'])
-if (!dsh.ok) { console.error(`dsh is not on PATH; install it first: npm install -g @deepseek-ai/dsh@${process.env.DITTO_DSH_VERSION ?? '0.1.5-rc.3'}`); process.exit(process.env.CI ? 1 : 0) }
+if (!dsh.ok) { console.error(`dsh is not on PATH; install it first: npm install -g @deepseek-ai/dsh@${process.env.DITTO_DSH_VERSION ?? '0.2.2-rc.4'}`); process.exit(1) }
 const pnpm = capture('pnpm', ['--version'])
-if (!pnpm.ok) { console.error('pnpm is not on PATH; dsh plugin needs it (npm install -g pnpm)'); process.exit(process.env.CI ? 1 : 0) }
+if (!pnpm.ok) { console.error('pnpm is not on PATH; dsh plugin needs it (npm install -g pnpm)'); process.exit(1) }
+if (process.env.DITTO_DSH_VERSION && !dsh.stdout.includes(process.env.DITTO_DSH_VERSION)) throw new Error(`Expected DSH ${process.env.DITTO_DSH_VERSION}, got ${dsh.stdout.trim()}`)
 console.log(`dsh ${dsh.stdout.trim()} · pnpm ${pnpm.stdout.trim()}`)
 
-const packed = JSON.parse(must(capture(npm, ['pack', '--json', '--pack-destination', tmpdir()]), 'npm pack').stdout)
-const tarball = join(tmpdir(), packed[0].filename)
 const home = mkdtempSync(join(tmpdir(), 'dsh-ditto-profile-home-'))
+const packed = JSON.parse(must(capture(npm, ['pack', '--json', '--pack-destination', home]), 'npm pack').stdout)
+const tarball = join(home, packed[0].filename)
 const profile = 'ditto-smoke'
 const env = { ...process.env, DSH_HOME: home, ...(dshLauncher.command === desktopExe ? { ELECTRON_RUN_AS_NODE: '1', DSH_DESKTOP_DEFAULT_PROFILE: 'web' } : {}) }
 try {
   console.log(`Isolated DSH_HOME: ${home}`)
+  // Run inside DSH's own module resolver and inspect the actual mounted plugin.
+  // Standalone `pnpm exec` intentionally does not inherit this resolver in DSH 0.2.
+  writeFileSync(join(home, 'verify.mjs'), [
+    "export const inject = ['dshDitto', 'tools', 'skills']",
+    'export async function apply(ctx) {',
+    "  const diagnostic = ctx.tools.get('ditto_doctor')",
+    "  if (!diagnostic) throw new Error('Ditto diagnostic tool missing from the real profile')",
+    '  const report = await diagnostic.execute({}, { signal: new AbortController().signal })',
+    "  if (!report.ok || !report.checks.some(check => /^(\\d+) of \\1 tools registered$/.test(check.label) && check.status === 'ok')) throw new Error('Ditto profile diagnostics failed: ' + JSON.stringify(report))",
+    `  if (!report.checks.some(check => check.status === 'ok' && check.label.includes(${JSON.stringify(`installed in profile "${profile}"`)}))) throw new Error('Diagnostic did not inspect the active profile: ' + JSON.stringify(report))`,
+    "  console.log('DITTO_PROFILE_READY: ' + report.checks.find(check => /tools registered$/.test(check.label)).label)",
+    '}',
+  ].join('\n'))
+  writeFileSync(join(home, 'verify.patch.yml'), '- insert:\n    - id: ditto-verification\n      name: ' + JSON.stringify(join(home, 'verify.mjs').replaceAll('\\', '/')) + '\n')
   // Starting the profile from the shipped web template keeps the boot step
   // meaningful (it has an app to load). A launcher too old for the flag still
   // works: `dsh plugin add` below initialises the profile, exactly as before.
@@ -85,7 +102,7 @@ try {
   console.log('2. dsh --dump-config       composed plugin tree contains the dsh-ditto/dsh entry')
 
   const boot = await bootProfile(profile, env)
-  if (!boot.booted || /plugin tree failed to load|dsh-ditto.*failed|cannot find.*dsh-ditto/i.test(boot.output)) throw new Error(`profile did not boot cleanly:\n${boot.output.slice(0, 3000)}`)
+  if (!boot.booted || !/DITTO_PROFILE_READY: (\d+) of \1 tools registered/.test(boot.output) || /plugin tree failed to load|dsh-ditto.*failed|cannot find.*dsh-ditto/i.test(boot.output)) throw new Error(`profile did not boot and verify Ditto cleanly:\n${boot.output.replace(/token=[^\s]+/g, 'token=[redacted]').slice(-8000)}`)
   console.log(`3. dsh --profile           ${boot.stayedUp ? `booted with dsh-ditto in the tree and stayed up for ${BOOT_GRACE_MS / 1000}s` : 'booted with dsh-ditto in the tree and exited cleanly'} (no plugin load error)`)
 
   const doctor = captureDsh(['plugin', '--profile', profile, 'exec', 'dsh-ditto', 'doctor'], { env })
@@ -93,9 +110,8 @@ try {
   console.log(`4. doctor inside profile\n    ${summary}`)
   // The doctor labels the count dynamically ("N of N tools registered") and reports a
   // failure when any catalogued tool is missing, so the shape is what matters here.
-  if (!doctor.ok || !/(\d+) of \1 tools registered/.test(doctor.stdout) || !new RegExp(`installed in profile "${profile}"`).test(doctor.stdout)) throw new Error(`doctor inside the profile did not pass:\n${doctor.stdout}\n${doctor.stderr}`)
+  if (!doctor.ok || !new RegExp(`installed in profile "${profile}"`).test(doctor.stdout)) throw new Error(`doctor inside the profile did not pass:\n${doctor.stdout}\n${doctor.stderr}`)
   console.log('Profile smoke passed.')
 } finally {
   rmSync(home, { recursive: true, force: true })
-  rmSync(tarball, { force: true })
 }

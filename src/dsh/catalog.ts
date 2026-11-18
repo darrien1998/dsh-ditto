@@ -7,7 +7,7 @@
  */
 export interface ToolFact {
   name: string
-  workflow: 'files' | 'spec'
+  workflow: 'files' | 'spec' | 'diagnostics'
   stage: string
   /** One sentence for humans. */
   purpose: string
@@ -20,6 +20,7 @@ export interface ToolFact {
 }
 
 export const TOOL_CATALOG: readonly ToolFact[] = [
+  { name: 'ditto_doctor', workflow: 'diagnostics', stage: 'Diagnostics', purpose: 'Inspect component versions, configured folders, approval policy, and the active tool and skill registrations without subprocesses.', writes: 'One temporary writability probe, removed immediately; no plans or output files.', approval: 'None.', failures: 'Invalid or unwritable state configuration and missing registrations are reported as failed checks; cancellation stops the diagnostic.' },
   { name: 'ditto_preview', workflow: 'files', stage: 'Discover / preview', purpose: 'Scan an authorised source folder and propose organised copies, optional reviewed sidecars, and an optional ZIP.', writes: 'Durable plan metadata under stateRoot only; no source or output files.', approval: 'None. Read-only preview.', failures: 'Folders outside the authorised roots, output overlapping the source or state metadata, symlinks or junctions in the batch, more files than max_items, colliding destinations or artifacts.' },
   { name: 'ditto_revise', workflow: 'files', stage: 'Review / edit', purpose: 'Change proposed destination names on a reviewed plan; produces a new revision and digest.', writes: 'Durable plan metadata only.', approval: 'None. Only submit edits the user asked for.', failures: 'Stale revision (call ditto_status), unknown item ids, items that already have a result, extension changes, case-insensitive collisions, unsafe segments.' },
   { name: 'ditto_revise_rule', workflow: 'files', stage: 'Review / rule revision', purpose: 'Revise the whole declarative rule (match regex, scope, flags, destination template, classification) and regenerate every proposal and exception in one reviewed revision.', writes: 'Durable plan metadata only.', approval: 'None. Only submit the rule the user asked for.', failures: 'Stale revision (call ditto_status), an unsupported regex (backreferences, lookarounds, alternation, nested quantifiers), an unknown or unsafe template token, a template that changes the source extension, rule revision after apply intent or any outcome exists.' },

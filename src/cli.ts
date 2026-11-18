@@ -17,7 +17,7 @@ Usage:
                                                  Code → Spec demo on a synthetic 16-module repository (no model, no API key)
   dsh-ditto demo-files [--dir <folder>] [--lang <locale>]
                                                  File-organisation demo on synthetic documents
-  dsh-ditto doctor [--profile <name>] [--workspace-root <dir>] [--state-root <dir>]
+  dsh-ditto doctor [--profile <name>] [--workspace-root <dir>] [--state-root <dir>] [--json]
                                                  Check Node, DSH, pnpm, the profile, tool/skill registration, and folders
   dsh-ditto serve <source> <output> <state> [--lang <locale>]
                                                  Open the local code → spec review page for a real folder
@@ -35,7 +35,7 @@ async function main(argv: string[]): Promise<void> {
   if (command === 'demo-files') return await browserFilesDemo(demoRoot(flags.get('dir'), 'files-demo'), lang)
   if (command === 'doctor') {
     const report = await runDoctor({ profile: flags.get('profile'), workspaceRoot: flags.get('workspace-root'), stateRoot: flags.get('state-root') })
-    console.log(renderDoctorReport(report))
+    console.log(flags.has('json') ? JSON.stringify(report, null, 2) : renderDoctorReport(report))
     process.exitCode = report.ok ? 0 : 1
     return
   }
@@ -114,9 +114,15 @@ function parse(argv: string[]): { command: string | undefined; flags: Map<string
   for (let index = 0; index < argv.length; index++) {
     const argument = argv[index]!
     if (argument.startsWith('--')) {
-      const [name, inline] = argument.slice(2).split('=', 2) as [string, string | undefined]
+      const separator = argument.indexOf('=')
+      const name = argument.slice(2, separator === -1 ? undefined : separator)
+      const inline = separator === -1 ? undefined : argument.slice(separator + 1)
+      const takesValue = ['dir', 'profile', 'workspace-root', 'state-root', 'lang'].includes(name)
+      if (!takesValue && !['help', 'version', 'headless', 'json'].includes(name)) throw new Error(`Unknown option: --${name}`)
+      if (takesValue && (inline === '' || (inline === undefined && (argv[index + 1] === undefined || argv[index + 1]!.startsWith('--'))))) throw new Error(`Option --${name} requires a value${name === 'lang' ? `; Supported locales: ${supportedUiLocales.join(', ')}` : ''}`)
+      if (!takesValue && inline !== undefined) throw new Error(`Option --${name} does not take a value`)
       if (inline !== undefined) flags.set(name, inline)
-      else if (['dir', 'profile', 'workspace-root', 'state-root', 'lang'].includes(name) && argv[index + 1] !== undefined && !argv[index + 1]!.startsWith('--')) flags.set(name, argv[++index]!)
+      else if (takesValue) flags.set(name, argv[++index]!)
       else flags.set(name, 'true')
     } else if (command === undefined) command = argument
     else positional.push(argument)

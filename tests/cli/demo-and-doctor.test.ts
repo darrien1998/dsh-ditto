@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { DEMO_MODULES, runHeadlessDemo } from '../../src/demo.js'
 import { renderDoctorReport, runDoctor } from '../../src/doctor.js'
 import { TOOL_NAMES } from '../../src/dsh/catalog.js'
-import { dittoVersion } from '../../src/compat.js'
+import { COMPATIBILITY, dittoVersion, isSupportedNodeVersion } from '../../src/compat.js'
 
 const roots: string[] = []
 afterEach(async () => { await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true }))) })
@@ -55,6 +55,37 @@ describe('headless demo', () => {
 })
 
 describe('doctor', () => {
+  it('keeps engine and peer declarations aligned with the diagnostic compatibility table', async () => {
+    const manifest = JSON.parse(await readFile('package.json', 'utf8'))
+    expect(manifest.engines.node).toBe(`>=${COMPATIBILITY.node.minimumVersion}`)
+    expect(manifest.peerDependencies).toEqual(COMPATIBILITY.dsh.peerRange)
+    for (const version of ['22.23.1', '24.8.9', '24.9', 'invalid']) expect(isSupportedNodeVersion(version)).toBe(false)
+    for (const version of ['24.9.0', '24.19.0', '26.0.0']) expect(isSupportedNodeVersion(version)).toBe(true)
+  })
+  it('rejects invalid profile names and folder configurations before probing outside the workspace', async () => {
+    const workspace = await mkdtemp(join(tmpdir(), 'ditto-doctor-config-')); roots.push(workspace)
+    const invalidProfile = await runDoctor({ profile: '../escape', workspaceRoot: workspace, skipMount: true, skipCommands: true })
+    expect(invalidProfile.ok).toBe(false)
+    expect(invalidProfile.checks).toContainEqual(expect.objectContaining({ label: 'Invalid DSH profile name', status: 'fail' }))
+    const customProfile = await runDoctor({ profile: '我的 profile', workspaceRoot: workspace, skipMount: true, skipCommands: true })
+    expect(customProfile.ok).toBe(true)
+    const invalidState = await runDoctor({ workspaceRoot: workspace, stateRoot: '../outside-state', skipMount: true, skipCommands: true })
+    expect(invalidState.ok).toBe(false)
+    expect(invalidState.checks).toContainEqual(expect.objectContaining({ label: 'Invalid Ditto folder configuration', status: 'fail' }))
+  })
+
+  it('emits parseable JSON with a matching exit status and rejects missing or unknown options', () => {
+    const cli = (...args: string[]) => spawnSync(process.execPath, [join('node_modules', 'tsx', 'dist', 'cli.mjs'), 'src/cli.ts', ...args], { cwd: process.cwd(), encoding: 'utf8', timeout: 60_000 })
+    const result = cli('doctor', '--json')
+    const report = JSON.parse(result.stdout)
+    expect(result.status).toBe(report.ok ? 0 : 1)
+    expect(report.checks).toContainEqual(expect.objectContaining({ label: `${TOOL_NAMES.length} of ${TOOL_NAMES.length} tools registered` }))
+    for (const args of [['doctor', '--profile'], ['doctor', '--workspace-root='], ['doctor', '--jsoon']]) {
+      const invalid = cli(...args)
+      expect(invalid.status).toBe(1)
+      expect(invalid.stderr).toMatch(/requires a value|Unknown option/)
+    }
+  })
   it('reports plain-language checks and mounts the plugin in-process', async () => {
     const workspace = await mkdtemp(join(tmpdir(), 'dsh-ditto-doctor-ws-')); roots.push(workspace)
     const home = await mkdtemp(join(tmpdir(), 'dsh-ditto-doctor-home-')); roots.push(home)

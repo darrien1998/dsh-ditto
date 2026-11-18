@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process'
 import { readFileSync, writeFileSync } from 'node:fs'
 
 const spec = process.argv[2]
-if (!spec) { console.error('usage: node scripts/use-dsh-version.mjs <version|dist-tag>'); process.exit(2) }
+if (!spec || !/^[a-zA-Z0-9][a-zA-Z0-9.+_-]*$/.test(spec)) { console.error('usage: node scripts/use-dsh-version.mjs <exact-version|dist-tag>'); process.exit(2) }
 const shell = process.platform === 'win32'
 function npmView(field) {
   const result = spawnSync(shell ? 'npm.cmd' : 'npm', ['view', `@deepseek-ai/dsh-tools@${spec}`, field, '--json'], { encoding: 'utf8', shell })

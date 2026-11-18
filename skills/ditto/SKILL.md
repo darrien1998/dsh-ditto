@@ -38,7 +38,11 @@ Do not use Ditto when:
 - Ditto never executes or modifies the user's source files, writes only into a separate output folder, and never overwrites existing files. Say so when the user asks what will happen.
 - Host approval `unavailable` (including a missing service/agent identity or policy `never`) denies by default. Never retry around or bypass it. Proceed as agent only when the profile explicitly enabled `approvalUnavailable: agent` **and** the reviewed preview was shown and approved conversationally; that fallback is not proof of human approval. Rejection and cancellation always stop.
 
-## Workflow A — Code → Spec (TypeScript / JavaScript today)
+## Diagnostics
+
+Use `ditto_doctor` when a tool fails because of configuration, component compatibility, missing registrations, or approval availability. It inspects the active plugin and launches no subprocesses. Report failed checks and the configured roots; never change the approval policy to work around a denial.
+
+## Workflow A — Code → Spec (TypeScript / JavaScript, Java, Python)
 
 1. `ditto_spec_create` with the repository folder and a fresh output folder. It returns the batch identity and three sample module ids.
 2. For each sample: `ditto_spec_queue` (phase `samples`) → `ditto_spec_module` for its evidence → write a JSON `SpecDraft` from that evidence only → `ditto_spec_submit`.

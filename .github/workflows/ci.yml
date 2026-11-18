@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 env:
-  DITTO_DSH_VERSION: 0.1.5-rc.1
+  DITTO_DSH_VERSION: 0.2.2-rc.4
 
 jobs:
   test:
@@ -21,7 +21,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        node: [22, 24]
+        node: [24, 26]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -45,12 +45,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dsh: ['0.1.5-rc.3']
+        dsh: ['0.2.2-rc.1', '0.2.2-rc.4']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
       - run: npm ci
       - run: npm run build
@@ -78,7 +78,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
       - name: Point the DSH dev dependencies at the ${{ matrix.tag }} dist-tag
         id: version
         run: |
