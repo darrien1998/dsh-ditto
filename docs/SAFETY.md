@@ -1,5 +1,7 @@
 # Safety by design
 
+Version 0.6 keyboard controls use the existing approval buttons and server routes. `tests/ui/keyboard.test.ts` executes both shipped client scripts and checks sample navigation, typing/composition/repeat exclusions, disabled/busy actions, no submission on focus, and unchanged revision/digest/CSRF requests on activation. `tests/spec/sample-selection.test.ts` checks role coverage, near-duplicate avoidance and order-independent selection; persisted sample ids are not recalculated.
+
 Version 0.5 productivity gates are covered by `tests/dsh/productivity.spec.ts`: complete evidence byte budgets, context restoration, atomic multi-draft rollback, duplicate/unrelated/stale receipts, durable counters, source/dependency/environment/instruction invalidation, fresh approval after reuse, environment recheck before apply, and template integrity. Reuse is a text-based draft cache, not semantic verification; see [EFFICIENCY.md](EFFICIENCY.md).
 
 **Your source stays untouched. Nothing is batch-written before approval. Ditto does not execute source code or SQL and does not store model API keys.**

@@ -1,3 +1,18 @@
+# Ditto 0.6.0 更新與驗證報告
+
+驗證日期：2026-11-18（Asia/Taipei），Windows／Node.js 24.19.0。
+
+- 完成 #6：樣本先取內容豐富模組，再優先涵蓋不同資料夾、語言與結構。迴歸 fixture 證明舊法三份皆為 routes，新法涵蓋三種資料夾角色；檢查輸入順序不影響結果及相似樣本避免重複。
+- 完成 #8：兩個審閱頁加入 Alt + 上下方向鍵切換樣本、Alt + Shift + A 移至核准按鈕，再用原生 Enter／空白鍵執行。中英文提示、可見焦點、輸入／組字／連發／停用／忙碌保護均有 client-script 測試。
+- 完整發布檢查通過：15 個測試檔、122 項測試、40 項 DSH 元件整合、schema 文件、效率比較、乾淨 tarball 安裝、真實 DSH rc.4 隔離 profile，以及執行期依賴稽核 0 漏洞。
+- 30 模組合成傳輸比較仍為 71 → 28 次呼叫、約 252 KB → 55 KB JSON，兩條流程輸出一致、來源未變。未呼叫模型，不代表 token、費用、速度或語意品質改善。
+- #3／#4／#5／#7 按產品範圍以 not planned 結案；#9 保留為真實使用與品質證據。理由見 [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md)。
+- 遠端 CI 與提交證據以 0.6.0 Release 附件 CI_RESULTS.json 為準。npm 驗證仍需有效登入；目前使用 GitHub tarball 安裝新版。
+
+以下為歷史版本驗證紀錄。
+
+---
+
 # Ditto 0.5.0 更新與驗證報告
 
 驗證日期：2026-11-18（Asia/Taipei）。Windows、Node.js 24.19.0。

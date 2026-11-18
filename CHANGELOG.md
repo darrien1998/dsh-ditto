@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## [0.6.0] - 2026-11-18
+
+### Added
+
+- Keyboard navigation across samples in both local review pages, using Alt + ArrowDown/ArrowUp. Alt + Shift + A focuses the enabled approval button; Enter/Space retains native activation and existing approval gates.
+- Visible English/Traditional Chinese shortcut help, approval accessibility metadata and sample focus indicators. Editing fields, composition, repeated keys and conflicting modifiers remain untouched; busy/disabled actions cannot be focused by the shortcut.
+- Full client-script keyboard tests and a sample-selection regression fixture demonstrating three-folder coverage where the old heuristic selected only routes.
+
+### Changed
+
+- Representative sampling starts with a rich module, then prefers unseen folders/languages and structural distance to reduce redundant calibration. Saved batches keep their recorded sample ids.
+- Product roadmap prioritises review quality and real-work evidence; C#/Go, arbitrary renderer headings and a host-specific panel are not planned for the current scope.
+
 ## [0.5.0] - 2026-11-18
 
 ### Added
@@ -111,7 +124,10 @@ First public release.
 
 - A cross-drive path on Windows could be treated as inside the workspace by the native-tool boundary check; the core `within()` check is now used everywhere.
 
-[Unreleased]: https://github.com/darrien1998/dsh-ditto/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/darrien1998/dsh-ditto/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/darrien1998/dsh-ditto/compare/v0.5.0...v0.6.0
+[0.5.0]: https://github.com/darrien1998/dsh-ditto/compare/v0.4.0...v0.5.0
+[0.4.0]: https://github.com/darrien1998/dsh-ditto/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/darrien1998/dsh-ditto/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/darrien1998/dsh-ditto/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/darrien1998/dsh-ditto/releases/tag/v0.1.0
