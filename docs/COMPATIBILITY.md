@@ -15,7 +15,7 @@ CI targets Node 24 and 26 on Ubuntu and Windows. Local verification was on Windo
 
 ## Runtime contract
 
-- Peers: `@deepseek-ai/cordis ~4.1.0`, `@deepseek-ai/dsh-tools >=0.2.2-rc.1 <0.3.0`. Ditto uses the host instances instead of bundling another runtime.
+- Peers: `@deepseek-ai/cordis ~4.0.6-alpha.2 || ~4.1.0`, `@deepseek-ai/dsh-tools >=0.2.2-alpha.3 <0.3.0`. The lower preview floor lets the alpha canary exercise real clean installation against its matching Cordis release. The supported release baseline remains DSH 0.2.2-rc.1/rc.4 with Cordis 4.1. Ditto uses the host instances instead of bundling another runtime.
 - Required services: `tools`, `skills`. `approval` is read at call time and fails closed when unavailable, unless the profile owner explicitly enables the documented agent fallback.
 - Public APIs only: `defineTool`, tool registry, skill registration, Cordis services, and approval requests. Ditto modifies no DSH code.
 - DSH 0.2 separates the tool registry from its executor. Tests mount `dsh-tool-executor-native` and dispatch `{ calls, signal }` batches with raw JSON arguments. A live profile chooses its own executor; Ditto does not replace it.

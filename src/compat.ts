@@ -18,7 +18,7 @@ export const COMPATIBILITY = {
     supported: ['0.2.2-rc.4', '0.2.2-rc.1'],
     canary: ['0.2.2-alpha.3'],
     /** Ranges the plugin's peerDependencies accept. */
-    peerRange: { '@deepseek-ai/cordis': '~4.1.0', '@deepseek-ai/dsh-tools': '>=0.2.2-rc.1 <0.3.0' },
+    peerRange: { '@deepseek-ai/cordis': '~4.0.6-alpha.2 || ~4.1.0', '@deepseek-ai/dsh-tools': '>=0.2.2-alpha.3 <0.3.0' },
   },
   /** Host services Ditto uses: required at mount time, or optional and read at call time. */
   hostServices: { required: ['tools', 'skills'], optional: ['approval'] },

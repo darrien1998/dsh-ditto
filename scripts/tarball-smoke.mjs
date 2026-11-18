@@ -37,7 +37,7 @@ try {
   const pinned = ['dsh-agent', 'dsh-brand', 'dsh-code-runtime', 'dsh-invariants', 'dsh-llm', 'dsh-scope', 'dsh-session', 'dsh-session-projection', 'dsh-skill', 'dsh-system-prompt', 'dsh-timeout', 'dsh-tools', 'dsh-typert-protocol', 'dsh-user-approval', 'dsh-util-crypto', 'dsh-util-values']
   const overrides = Object.fromEntries(pinned.map(name => [`@deepseek-ai/${name}`, dshVersion]))
   writeFileSync(join(project, 'package.json'), JSON.stringify({ name: 'ditto-tarball-smoke', private: true, type: 'module', overrides }, null, 2))
-  run(npm, ['install', '--no-audit', '--no-fund', '--silent', tarball, `@deepseek-ai/cordis@${cordisVersion}`, `@deepseek-ai/dsh-tools@${dshVersion}`, `@deepseek-ai/dsh-skill@${dshVersion}`, `@deepseek-ai/dsh-system-prompt@${dshVersion}`, `@deepseek-ai/dsh-tool-executor-native@${dshVersion}`], { cwd: project })
+  run(npm, ['install', '--no-audit', '--no-fund', tarball, `@deepseek-ai/cordis@${cordisVersion}`, `@deepseek-ai/dsh-tools@${dshVersion}`, `@deepseek-ai/dsh-skill@${dshVersion}`, `@deepseek-ai/dsh-system-prompt@${dshVersion}`, `@deepseek-ai/dsh-tool-executor-native@${dshVersion}`], { cwd: project })
   const installed = JSON.parse(readFileSync(join(project, 'node_modules', 'dsh-ditto', 'package.json'), 'utf8'))
   if (!installed.dsh?.bundle?.patch) throw new Error('installed package.json lacks dsh.bundle.patch')
   if (!existsSync(join(project, 'node_modules', 'dsh-ditto', installed.dsh.bundle.patch))) throw new Error('bundle patch file missing from the installed package')
