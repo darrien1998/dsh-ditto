@@ -22,6 +22,7 @@
 | `npm run build` | 通過，TypeScript 嚴格編譯與宣告檔生成 |
 | `npm test` | **12 個測試檔、106 項測試通過** |
 | `npm run smoke:dsh` | 真實 Cordis、技能註冊與新版原生執行器；31 項整合測試通過 |
+| DSH `0.2.2-alpha.3` canary | 隔離 worktree 中完成 106 項測試、元件整合、schema 文件及乾淨打包安裝驗證 |
 | `npm run docs:tools -- --check` | 18 個工具的文件與即時 schema 一致 |
 | `npm run smoke:tarball` | 乾淨安裝、18 個工具、原生診斷呼叫、CLI 示範、doctor 及卸載通過 |
 | DSH `0.2.2-rc.1` tarball | 對 `latest` 通道的乾淨安裝與原生執行器診斷通過 |

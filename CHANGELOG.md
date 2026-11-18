@@ -7,6 +7,7 @@ All notable changes to this project are documented here. The format follows [Kee
 ### Changed
 
 - Upgrade to the DSH 0.2.2 host API, Cordis ~4.1.0, Node.js >=24.9.0, TypeScript 7, and current test tooling. DSH 0.1 profiles must retain Ditto 0.3.
+- Peer ranges include the matching DSH 0.2.2-alpha.3 / Cordis 4.0.6-alpha.2 preview pair so the alpha canary verifies real clean installation.
 - Integration calls now use DSH tool-call batches and the separate native executor. CI targets Node 24/26 and DSH 0.2.2-rc.1/rc.4 profiles.
 - Standalone doctor distinguishes unavailable CLI peer resolution from a failed component mount; DSH 0.2 no longer creates legacy module fallback links.
 
