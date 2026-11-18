@@ -32,7 +32,8 @@ export async function createSpecBatch(options: CreateSpecBatchOptions): Promise<
   const samples = chooseSamples(items)
   const batch: SpecBatch = {
     version: 'm1', id: randomUUID(), revision: 1, digest: '', createdAt: new Date().toISOString(), sourceRoot, outputRoot,
-    recipe: { version: 1, instructions: normalizeInstructions(options.instructions ?? ''), approvedSamples: [] }, discovery: scan.discovery, samples, items,
+    ...(options.environmentHash === undefined ? {} : { environmentHash: options.environmentHash }),
+    recipe: { version: 1, instructions: normalizeInstructions(options.instructions ?? ''), approvedSamples: [], ...(options.guidance ? { guidance: options.guidance } : {}) }, discovery: scan.discovery, samples, items,
     summary: summarizeSpecItems(items),
   }
   return withSpecDigest(batch)
@@ -96,7 +97,7 @@ export function summarizeSpecItems(items: SpecModule[]): SpecBatchSummary {
 
 /** Status and apply outcomes are omitted so a durable interrupted batch retains its reviewed identity. */
 export function withSpecDigest(batch: Omit<SpecBatch, 'digest'> & { digest?: string }): SpecBatch {
-  const digest = stableDigest({ version: batch.version, id: batch.id, revision: batch.revision, createdAt: batch.createdAt, sourceRoot: batch.sourceRoot, outputRoot: batch.outputRoot, recipe: batch.recipe, discovery: batch.discovery, samples: batch.samples, items: batch.items.map(item => ({ id: item.id, source: item.source, relativePath: item.relativePath, language: item.language, sourceHash: item.sourceHash, outputPath: item.outputPath, evidence: item.evidence, facts: item.facts, draft: item.draft, renderedMarkdown: item.renderedMarkdown, renderedHash: item.renderedHash, approvedMarkdown: item.approvedMarkdown, generation: item.generation && { ...item.generation, cached: undefined } })) })
+  const digest = stableDigest({ version: batch.version, id: batch.id, revision: batch.revision, createdAt: batch.createdAt, sourceRoot: batch.sourceRoot, outputRoot: batch.outputRoot, ...(batch.environmentHash === undefined ? {} : { environmentHash: batch.environmentHash }), recipe: batch.recipe, discovery: batch.discovery, samples: batch.samples, items: batch.items.map(item => ({ id: item.id, source: item.source, relativePath: item.relativePath, language: item.language, sourceHash: item.sourceHash, outputPath: item.outputPath, evidence: item.evidence, facts: item.facts, draft: item.draft, renderedMarkdown: item.renderedMarkdown, renderedHash: item.renderedHash, approvedMarkdown: item.approvedMarkdown, generation: item.generation && { ...item.generation, cached: undefined } })) })
   return { ...batch, digest } as SpecBatch
 }
 

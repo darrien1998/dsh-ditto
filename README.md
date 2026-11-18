@@ -27,26 +27,28 @@ Files:       preview every proposed copy and deliverable → revise → approve 
 Ditto is a native DSH plugin. One command installs it into a DSH profile:
 
 ```bash
-dsh plugin --profile web add dsh-ditto
+dsh plugin --profile web add https://github.com/darrien1998/dsh-ditto/releases/download/v0.5.0/dsh-ditto-0.5.0.tgz
 ```
+
+The GitHub asset installs **0.5.0** explicitly. The npm registry currently carries an older release; its badge does not describe the GitHub release.
 
 `dsh plugin` forwards to pnpm inside the profile directory, so [pnpm](https://pnpm.io) must be on your PATH. Use `--profile headless`, `--profile acp`, or any custom profile name instead of `web` as needed.
 
 | | |
 |---|---|
-| **Update** | `dsh plugin --profile web update dsh-ditto` |
+| **Update** | `dsh plugin --profile web add https://github.com/darrien1998/dsh-ditto/releases/download/v0.5.0/dsh-ditto-0.5.0.tgz` |
 | **Remove** | `dsh plugin --profile web remove dsh-ditto` |
 | **Verify** | `dsh plugin --profile web exec dsh-ditto doctor` |
 
 The doctor prints plain-language checks:
 
 ```text
-✓ Ditto 0.4.0
+✓ Ditto 0.5.0
 ✓ Node.js 24.19.0
 ✓ dsh 0.2.2-rc.4 detected
 ✓ pnpm 11.25.0 detected (used by "dsh plugin")
 ✓ dsh-ditto is installed in profile "web" and listed in its bundles
-✓ 18 of 18 tools registered
+✓ 23 of 23 tools registered
 ✓ skill "ditto" registered
 ✓ stateRoot /your/project/.dsh-ditto is writable
 ✓ allowedSourceRoots /your/project
@@ -56,7 +58,7 @@ The doctor prints plain-language checks:
 
 Requirements: Node.js **24.9.0 or later** and DSH **0.2.2-rc.1 or 0.2.2-rc.4** (see [Compatibility](#compatibility)). Version 0.4 upgrades the host API baseline; use Ditto 0.3 for DSH 0.1 profiles.
 
-DSH 0.2 resolves host packages inside its plugin runtime. A standalone profile CLI may report that the component mount is unavailable; booting does not create fallback links. Ask the DSH agent to run **`ditto_doctor`** to check the active 18 tools, skill, folders, and approval policy. Use `dsh-ditto doctor --json` for machine-readable CLI diagnostics.
+DSH 0.2 resolves host packages inside its plugin runtime. A standalone profile CLI may report that the component mount is unavailable; booting does not create fallback links. Ask the DSH agent to run **`ditto_doctor`** to check the active 23 tools, skill, folders, and approval policy. Use `dsh-ditto doctor --json` for machine-readable CLI diagnostics.
 
 ## Quick start
 
@@ -69,9 +71,20 @@ You do not have to say "Ditto" or learn any tool names. When a request covers a 
 Want to see the workflow before installing anything? The demo needs no model and no API key:
 
 ```bash
-npx dsh-ditto demo --headless   # terminal transcript, 16 synthetic modules
-npx dsh-ditto demo              # the same batch in a local browser review page
+npx --yes --package=https://github.com/darrien1998/dsh-ditto/releases/download/v0.5.0/dsh-ditto-0.5.0.tgz dsh-ditto demo --headless   # terminal transcript, 16 synthetic modules
+npx --yes --package=https://github.com/darrien1998/dsh-ditto/releases/download/v0.5.0/dsh-ditto-0.5.0.tgz dsh-ditto demo              # the same batch in a local browser review page
 ```
+
+## Less repeated context, fewer tool turns
+
+Version 0.5 delivers several complete module contexts in one bounded response, accepts their drafts atomically, and returns a compact change summary. The agent can omit shared examples only when it still has the exact `context_id` content. After a reset or handoff, omit `known_context` to restore it.
+
+- **Batch work:** `ditto_spec_work` → `ditto_spec_submit_many`, normally three modules per turn; oversized evidence uses existing paging.
+- **Incremental reuse:** offer unchanged drafts from a prior approved batch as fresh review candidates. Source/dependency fingerprints, environment manifests, instructions, templates and approved examples control invalidation. Approval never transfers.
+- **Task templates:** choose overview, API reference or behaviour-before-refactor guidance, or save your approved examples for another batch.
+- **Honest reporting:** `ditto_spec_report` records optimized-path calls, response bytes and reused modules locally; token and cost fields remain unknown.
+
+A reproducible 30-module synthetic fixture reduced tool calls **71 → 28** and response JSON approximately **252 KB → 55 KB**, with identical Markdown and untouched sources. This measures transport overhead, not model tokens, price, speed or semantic quality. See [method, limits and workflow](docs/EFFICIENCY.md).
 
 ## Example: Code → Spec
 
@@ -175,7 +188,7 @@ Ditto is a DSH plugin, not a Markdown skill. The package contains:
 |---|---|
 | Cordis service | `dsh-ditto/dsh` — one service that registers the skill and the tools on the host's public `skills` and `tools` services; unloading the bundle removes everything |
 | Skill | `skills/ditto/SKILL.md` — the routing layer the agent reads (model- and user-invocable) |
-| Native tools | 18 typed tools: 9 for Code → Spec, 8 for file organisation, and `ditto_doctor` ([reference](docs/TOOLS.md)) |
+| Native tools | 23 typed tools: 14 for Code → Spec, 8 for file organisation, and `ditto_doctor` ([reference](docs/TOOLS.md)) |
 | Deterministic core | discovery, RE2 matching, safe path rendering, evidence/citation validation, sidecar and ZIP rendering, hashing, revision/digest gates, durable state |
 | Local review page | an optional loopback-only browser page used by the demo and `dsh-ditto serve` |
 
@@ -185,9 +198,9 @@ Ditto depends only on public DSH APIs (`@deepseek-ai/cordis`, `@deepseek-ai/dsh-
 
 | Ditto | DSH | Node.js | Status |
 |---|---|---|---|
-| 0.4.0 | 0.2.2-rc.4 (`next`) | ≥24.9.0 | component, tarball, and real isolated-profile verification |
-| 0.4.0 | 0.2.2-rc.1 (`latest`) | ≥24.9.0 | clean-install tarball, native diagnostic, and real isolated-profile verification |
-| 0.4.0 | `next` / `alpha` | 24, 26 | canary CI; future tags are not an automatic support promise |
+| 0.5.0 | 0.2.2-rc.4 (`next`) | ≥24.9.0 | component, tarball, and real isolated-profile verification |
+| 0.5.0 | 0.2.2-rc.1 (`latest`) | ≥24.9.0 | clean-install tarball, native diagnostic, and real isolated-profile verification |
+| 0.5.0 | `next` / `alpha` | 24, 26 | canary CI; future tags are not an automatic support promise |
 | 0.1–0.3 | 0.1.x | 22, 24 | historical releases; use their matching documentation |
 
 DSH is moving fast; see [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md) for what exactly is tested and how to report a breaking change.

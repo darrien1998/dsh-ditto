@@ -1,0 +1,23 @@
+{
+  "version": "0.5.0",
+  "fixture": "30 synthetic independent one-function TypeScript modules",
+  "modelCalls": 0,
+  "qualityMeasured": false,
+  "metrics": {
+    "singleModule": {
+      "toolCalls": 71,
+      "responseBytes": 251651
+    },
+    "optimized": {
+      "toolCalls": 28,
+      "responseBytes": 54549
+    }
+  },
+  "comparison": {
+    "identicalOutputs": true,
+    "sourceFilesUnchanged": true,
+    "fewerToolCalls": 43,
+    "fewerResponseBytes": 197102
+  },
+  "limitations": "Measures actual native tool value JSON UTF-8 bytes and calls on this fixture, not provider input/output tokens, prefix caching, prices, human review time, or model semantic accuracy. Both paths use the current tool catalog. Approval is simulated only for synthetic fixture data."
+}

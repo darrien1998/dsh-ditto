@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] - 2026-11-18
+
+### Added
+
+- Five native tools: bounded multi-module `ditto_spec_work`, atomic `ditto_spec_submit_many`, fingerprinted `ditto_spec_reuse`, local `ditto_spec_report`, and approved-example `ditto_spec_template` (23 tools total).
+- Exact shared-context identities, explicit context restoration, whole-evidence byte budgets, oversized-module paging guidance, compact draft deltas and stale-work receipt rejection.
+- Conservative source/dependency/environment invalidation for reviewed draft candidates. Reused content always requires the new batch's sample and final approval; changed environment is checked again before apply.
+- Built-in overview, API reference and behaviour-before-refactor guidance plus integrity-checked saved templates.
+- Reproducible 30-module native-tool benchmark in CI: identical outputs, fewer tool calls and fewer response bytes; no model, token/cost or semantic-quality claims.
+
+### Changed
+
+- Prefer work/submit-many in the shipped agent skill; existing fine-grained tools retain their default behavior. `ditto_spec_submit` optionally returns a compact delta.
+- Install instructions explicitly pin the GitHub 0.5.0 asset while npm publication is unavailable.
+
 ## [0.4.0] - 2026-11-18
 
 ### Changed

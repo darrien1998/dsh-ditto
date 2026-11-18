@@ -51,7 +51,7 @@ export function reviseSpecBatch(batch: SpecBatch, edit: SpecBatchEdit): SpecBatc
     }
     return { ...item, status: 'pending' as const, reason: undefined, draft: undefined, renderedMarkdown: undefined, renderedHash: undefined, generation: undefined }
   })
-  return withSpecDigest({ ...batch, revision: batch.revision + 1, digest: '', recipe: { version: 1, instructions, approvedSamples: [] }, items, summary: summarizeSpecItems(items) })
+  return withSpecDigest({ ...batch, revision: batch.revision + 1, digest: '', recipe: { ...batch.recipe, instructions, approvedSamples: [], approvalRevision: undefined }, items, summary: summarizeSpecItems(items) })
 }
 
 export function approveSpecSamples(batch: SpecBatch): SpecBatch {
@@ -67,7 +67,7 @@ export function approveSpecSamples(batch: SpecBatch): SpecBatch {
   const items = batch.items.map(item => batch.samples.includes(item.id)
     ? { ...item, status: 'approved' as const, approvedMarkdown: approvedSamples.find(sample => sample.moduleId === item.id)!.markdown, renderedMarkdown: approvedSamples.find(sample => sample.moduleId === item.id)!.markdown, renderedHash: renderedHash(approvedSamples.find(sample => sample.moduleId === item.id)!.markdown) }
     : item)
-  return withSpecDigest({ ...batch, revision, digest: '', recipe: { version: 1, instructions: batch.recipe.instructions, approvedSamples, approvalRevision: revision }, items, summary: summarizeSpecItems(items) })
+  return withSpecDigest({ ...batch, revision, digest: '', recipe: { ...batch.recipe, approvedSamples, approvalRevision: revision }, items, summary: summarizeSpecItems(items) })
 }
 
 export function recipeDigest(batch: Pick<SpecBatch, 'recipe'>): string { return hash(JSON.stringify(batch.recipe)) }
@@ -87,6 +87,11 @@ export function assertSpecBatch(batch: unknown): asserts batch is SpecBatch {
   const value = batch as SpecBatch
   if (value.version !== 'm1' || typeof value.id !== 'string' || !/^[0-9a-f-]{16,64}$/i.test(value.id) || !Number.isInteger(value.revision) || value.revision < 1 || !/^[a-f0-9]{64}$/i.test(value.digest) || !Array.isArray(value.items) || value.items.length < 1 || value.items.length > 50 || !Array.isArray(value.samples) || value.samples.length !== 3 || new Set(value.samples).size !== 3 || value.samples.some(id => !value.items.some(item => item.id === id)) || !value.recipe || value.recipe.version !== 1 || !value.discovery || value.discovery.inScope !== value.items.length || !Number.isInteger(value.discovery.excludedTotal) || !Array.isArray(value.discovery.excluded)) throw new Error('Invalid specification batch')
   normalizeInstructions(value.recipe.instructions)
+  if (value.environmentHash !== undefined && !/^[a-f0-9]{64}$/.test(value.environmentHash)) throw new Error('Invalid batch environment hash')
+  if (value.recipe.guidance !== undefined) {
+    const guide = value.recipe.guidance
+    if (!guide || typeof guide.id !== 'string' || guide.id.length > 80 || typeof guide.name !== 'string' || guide.name.length > 80 || !/^[a-f0-9]{64}$/.test(guide.digest) || !Array.isArray(guide.examples) || guide.examples.length > 3 || guide.examples.some(example => !example || typeof example.moduleId !== 'string' || typeof example.markdown !== 'string' || example.markdown.length > 12_000)) throw new Error('Invalid batch style guidance')
+  }
   for (const item of value.items) assertSpecModule(item)
   const approvedIds = value.recipe.approvedSamples.map(sample => sample.moduleId)
   if (approvedIds.length > 3 || new Set(approvedIds).size !== approvedIds.length || approvedIds.some(id => !value.samples.includes(id)) || (approvedIds.length === 0 && value.recipe.approvalRevision !== undefined) || (approvedIds.length > 0 && value.recipe.approvalRevision !== value.revision)) throw new Error('The batch approval record is invalid')

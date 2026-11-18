@@ -41,7 +41,7 @@ describe('SKILL.md is the single source of truth for the Ditto skill', () => {
 describe('tool catalog', () => {
   it('covers every registered tool exactly once with the facts docs/TOOLS.md needs', () => {
     expect(new Set(TOOL_NAMES).size).toBe(TOOL_NAMES.length)
-    expect(TOOL_NAMES).toHaveLength(18)
+    expect(TOOL_NAMES).toHaveLength(23)
     for (const fact of TOOL_CATALOG) {
       expect(fact.name).toMatch(/^ditto(_spec)?_[a-z_]+$/)
       for (const field of ['stage', 'purpose', 'writes', 'approval', 'failures'] as const) expect(fact[field].length).toBeGreaterThan(3)

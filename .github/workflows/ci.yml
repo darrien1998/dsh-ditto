@@ -33,6 +33,7 @@ jobs:
       - run: npm test
       - run: npm run smoke:dsh
       - run: npm run docs:tools -- --check
+      - run: npm run benchmark:efficiency
       - run: npm pack --dry-run
       - run: npm run smoke:tarball
       - name: Headless demo from the built package

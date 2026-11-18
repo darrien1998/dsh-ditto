@@ -15,6 +15,7 @@ Node.js 24.9.0 or later. Development dependencies pin DSH 0.2.2-rc.4 components 
 
 | Command | What it does |
 |---|---|
+| `npm run benchmark:efficiency` | Native-tool transport comparison on 30 synthetic modules; verifies identical output and fewer calls/bytes without a model |
 | `npm run build` | `tsc` to `dist/` |
 | `npm test` | Vitest: core safety (`tests/core`), Code → Spec engine (`tests/spec`), review pages (`tests/ui`), plugin contract and native tools on the real component host (`tests/dsh`), CLI demo and doctor (`tests/cli`) |
 | `npm run smoke:dsh` | The `tests/dsh` suite in an isolated `DSH_HOME`, with an assertion on the resolved DSH versions (`DITTO_DSH_VERSION` overrides the expected version) |

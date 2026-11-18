@@ -31,7 +31,7 @@ describe('Ditto native tools on the published Cordis + ToolRuntime', () => {
       await ctx.plugin(DshDitto, { workspaceRoot: root })
       const report = value(await call(ctx, 'ditto_doctor', {}))
       expect(report.ok).toBe(true)
-      expect(report.checks).toEqual(expect.arrayContaining([expect.objectContaining({ label: '18 of 18 tools registered', status: 'ok' }), expect.objectContaining({ label: 'approval host', status: 'warn' })]))
+      expect(report.checks).toEqual(expect.arrayContaining([expect.objectContaining({ label: '23 of 23 tools registered', status: 'ok' }), expect.objectContaining({ label: 'approval host', status: 'warn' })]))
       expect(report.checks).toContainEqual(expect.objectContaining({ label: expect.stringContaining('profile "custom-profile" is not initialised') }))
     } finally { await ctx.fiber.dispose() }
   })

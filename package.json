@@ -1,6 +1,6 @@
 {
   "name": "dsh-ditto",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Review-first batch automation for DeepSeek Harness: evidence-backed Code to Spec plus safe bulk file organisation with complete manifests, reviewed sidecars, and deterministic ZIP delivery.",
   "type": "module",
   "license": "MIT",
@@ -74,8 +74,9 @@
     "smoke:dsh": "tsx scripts/dsh-smoke.ts",
     "smoke:tarball": "node scripts/tarball-smoke.mjs",
     "smoke:profile": "node scripts/profile-smoke.mjs",
+    "benchmark:efficiency": "tsx scripts/efficiency-benchmark.ts",
     "prepack": "npm run build",
-    "release:check": "npm run build && npm test && npm run smoke:dsh && npm run docs:tools -- --check && npm run smoke:tarball",
+    "release:check": "npm run build && npm test && npm run smoke:dsh && npm run docs:tools -- --check && npm run benchmark:efficiency && npm run smoke:tarball",
     "release:check:full": "npm run release:check && npm run smoke:profile && npm audit --omit=dev",
     "prepublishOnly": "npm run build && npm test && npm run docs:tools -- --check"
   },

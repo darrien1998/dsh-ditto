@@ -38,6 +38,9 @@ import { dittoSkill } from './skill.js'
 import { fileTools } from './tools/files.js'
 import { specTools } from './tools/spec.js'
 import { diagnosticTools } from './tools/diagnostics.js'
+import { productivityTools } from './tools/productivity.js'
+import { SpecProductivity } from './productivity.js'
+import { environmentHash } from '../spec/productivity.js'
 import { withMutation } from './tools/shared.js'
 
 export interface PlanView {
@@ -104,14 +107,16 @@ export class DshDitto extends Service<DshDittoConfig> {
   readonly config: ResolvedConfig
   /** The plugin's own context, exposed for the tool modules (host services such as `approval` are read from it at call time). */
   readonly host: Context
+  readonly productivity: SpecProductivity
   private static readonly REVIEWS = 'reviews'
 
   constructor(ctx: Context, config: DshDittoConfig = {}) {
     super(ctx, 'dshDitto')
     this.host = ctx
     this.config = resolveConfig(config)
+    this.productivity = new SpecProductivity(this)
     ctx.skills.register(dittoSkill())
-    for (const tool of [...fileTools(this), ...specTools(this), ...diagnosticTools(this)]) ctx.tools.register(tool)
+    for (const tool of [...fileTools(this), ...specTools(this), ...diagnosticTools(this), ...productivityTools(this)]) ctx.tools.register(tool)
   }
 
   // ---- File organisation ------------------------------------------------
@@ -227,9 +232,10 @@ export class DshDitto extends Service<DshDittoConfig> {
    * routing and approvals, so the agent obtains bounded evidence, generates a
    * JSON draft, and submits it for deterministic validation.
    */
-  async createSpec(input: { sourceRoot: string; outputRoot: string; instructions?: string }): Promise<SpecBatch> {
+  async createSpec(input: { sourceRoot: string; outputRoot: string; instructions?: string; templateId?: string }): Promise<SpecBatch> {
     const roots = await this.checkedRoots(input.sourceRoot, input.outputRoot)
-    const batch = await createSpecBatch({ sourceRoot: roots.sourceRoot, outputRoot: roots.destinationRoot, stateRoot: this.config.stateRoot, instructions: input.instructions })
+    const template = input.templateId ? await this.productivity.getTemplate(input.templateId) : undefined
+    const batch = await createSpecBatch({ sourceRoot: roots.sourceRoot, outputRoot: roots.destinationRoot, stateRoot: this.config.stateRoot, instructions: template ? [template.instructions, input.instructions].filter(Boolean).join('\n\n') : input.instructions, environmentHash: await environmentHash(this.config.workspaceRoot), ...(template ? { guidance: { id: template.id, name: template.name, digest: template.digest, examples: template.examples } } : {}) })
     await saveSpecBatch(batch, this.config.stateRoot)
     return batch
   }
@@ -273,6 +279,7 @@ export class DshDitto extends Service<DshDittoConfig> {
   async reviewSpecApply(batchId: string, revision: number, digest: string): Promise<SpecBatch> {
     const batch = await this.specStatus(batchId)
     assertSpecIdentity(batch, revision, digest)
+    await this.checkReusedEnvironment(batch)
     return batch
   }
 
@@ -280,8 +287,15 @@ export class DshDitto extends Service<DshDittoConfig> {
     return withMutation(this.config.stateRoot, `spec:${batchId}`, async () => {
       const batch = await this.specStatus(batchId)
       assertSpecIdentity(batch, revision, digest)
+      await this.checkReusedEnvironment(batch)
       return applySpecBatch(batch, { id: batchId, revision, digest }, this.config.stateRoot)
     })
+  }
+
+  private async checkReusedEnvironment(batch: SpecBatch): Promise<void> {
+    if (batch.items.some(item => item.generation?.generatorId === 'dsh-reuse') && batch.environmentHash !== await environmentHash(this.config.workspaceRoot)) {
+      throw new Error('Dependency environment changed after draft reuse; create a new batch and review it before applying')
+    }
   }
 
   // ---- Bounded views ----------------------------------------------------

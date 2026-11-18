@@ -1,5 +1,7 @@
 # Safety by design
 
+Version 0.5 productivity gates are covered by `tests/dsh/productivity.spec.ts`: complete evidence byte budgets, context restoration, atomic multi-draft rollback, duplicate/unrelated/stale receipts, durable counters, source/dependency/environment/instruction invalidation, fresh approval after reuse, environment recheck before apply, and template integrity. Reuse is a text-based draft cache, not semantic verification; see [EFFICIENCY.md](EFFICIENCY.md).
+
 **Your source stays untouched. Nothing is batch-written before approval. Ditto does not execute source code or SQL and does not store model API keys.**
 
 These guarantees are enforced in code and covered by `npm test` plus the real-host smokes. Please report any bypass through [SECURITY.md](../SECURITY.md).

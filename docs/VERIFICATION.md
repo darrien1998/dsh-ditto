@@ -1,3 +1,24 @@
+# Ditto 0.5.0 更新與驗證報告
+
+驗證日期：2026-11-18（Asia/Taipei）。Windows、Node.js 24.19.0。
+
+## 本版完成
+
+- 新增批次工作包、原子多份提交、精簡回傳、增量草稿重用、任務範本與本機效率報告，共 23 個原生工具。
+- 完整模組證據受 bytes 上限控制；過大時明確要求分頁。上下文遺失後可重新取得，context id 不被當成模型記憶。
+- 重用依來源與靜態相依內容、環境 manifest、指示、範本與核准樣本失效；新批次仍需樣本與最終核准，寫入前再次檢查環境。
+- 新增 9 項原生宿主測試，完整套件為 13 個測試檔、115 項測試；保留既有檔案、安全、續跑與混合語言測試。
+- 新增可重現效率測試並納入 CI：30 個合成模組，工具呼叫 71 → 28，JSON 回傳約 252 KB → 55 KB。兩條流程完整預覽、輸出相同、來源未變，未使用模型。原始結果見 [efficiency-result.json](efficiency-result.json)。這不是 token、費用、速度或語意品質量測。
+- 本機完整發布檢查包含建置、115 項測試、DSH 元件、schema 文件、效率比較、乾淨打包、真實隔離 profile 與執行期稽核；遠端結果以本版 Release 所附 CI_RESULTS.json 及 Actions 為準。
+
+## 發布與限制
+
+GitHub 發行檔提供版本固定的可安裝 tarball 與 SHA-256；npm 發布需要有效登入，目前 `npm whoami` 回覆 E401，因此 README 明確使用 GitHub 0.5.0 資產，不讓使用者誤裝 npm 舊版。完整方法與快取範圍見 [EFFICIENCY.md](EFFICIENCY.md)。DSH dist-tags 查核仍為 latest 0.2.2-rc.1、next 0.2.2-rc.4、alpha 0.2.2-alpha.3。
+
+以下保留 0.4 的歷史驗證紀錄；其中的工具數與測試數屬於該版。
+
+---
+
 # Ditto 0.4.0 更新與驗證報告
 
 驗證日期：2026-11-18（Asia/Taipei）。環境：Windows、Node.js 24.19.0、npm 11.17.0、pnpm 11.25.0。
