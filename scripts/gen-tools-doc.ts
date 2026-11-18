@@ -22,7 +22,7 @@ async function render(): Promise<string> {
     const ctx = new Context()
     await ctx.plugin(SkillRegistry, {})
     await ctx.plugin(SystemPrompt, {})
-    await ctx.plugin(ToolRuntime, { mode: 'native' })
+    await ctx.plugin(ToolRuntime, {})
     await ctx.plugin(DshDitto, { workspaceRoot: root })
     const schemas = new Map(ctx.tools.schemas().map(schema => [schema.name, schema as { name: string; description: string; parameters: JsonSchemaNode }]))
     const skill = dittoSkill()
@@ -39,10 +39,11 @@ async function render(): Promise<string> {
     lines.push(`Skill: \`${skill.name}\` — ${skill.description}`, '')
     lines.push('## At a glance', '')
     lines.push('| Tool | Workflow | Stage | Writes | Approval |', '|---|---|---|---|---|')
-    for (const fact of TOOL_CATALOG) lines.push(`| \`${fact.name}\` | ${fact.workflow === 'spec' ? 'Code → Spec' : 'File organisation'} | ${fact.stage} | ${fact.writes} | ${fact.approval} |`)
+    const workflowName = (workflow: string) => workflow === 'spec' ? 'Code → Spec' : workflow === 'files' ? 'File organisation' : 'Diagnostics'
+    for (const fact of TOOL_CATALOG) lines.push(`| \`${fact.name}\` | ${workflowName(fact.workflow)} | ${fact.stage} | ${fact.writes} | ${fact.approval} |`)
     lines.push('')
-    for (const workflow of ['spec', 'files'] as const) {
-      lines.push(`## ${workflow === 'spec' ? 'Code → Spec' : 'File organisation'}`, '')
+    for (const workflow of ['spec', 'files', 'diagnostics'] as const) {
+      lines.push(`## ${workflowName(workflow)}`, '')
       for (const fact of TOOL_CATALOG.filter(entry => entry.workflow === workflow)) {
         const schema = schemas.get(fact.name)!
         lines.push(`### \`${fact.name}\``, '')

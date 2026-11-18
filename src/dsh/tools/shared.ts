@@ -55,6 +55,7 @@ export async function requireHumanApproval(options: {
   reason: string
   unavailable?: 'deny' | 'agent'
 }): Promise<ApprovalSource> {
+  checkNotAborted(options.exec.signal)
   if (options.mode === 'agent') return 'agent'
   const approval = options.ctx.get('approval') as ApprovalLike | undefined
   if (!approval || typeof approval.request !== 'function' || !options.exec.agent) {
@@ -62,6 +63,7 @@ export async function requireHumanApproval(options: {
     throw new Error(`The DSH host could not ask for approval of ${options.toolName} (unavailable), so nothing was written. The approval service or agent identity is unavailable. Set "approvalUnavailable: agent" only if the profile owner intentionally accepts conversational approval fallback.`)
   }
   const outcome = await approval.request({ agent: options.exec.agent, toolName: options.toolName, callId: options.exec.callId, reason: options.reason, signal: options.exec.signal })
+  checkNotAborted(options.exec.signal)
   if (outcome === 'allowed-once') return 'host'
   if (outcome === 'unavailable') {
     if (options.unavailable === 'agent') return 'agent'

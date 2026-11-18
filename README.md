@@ -41,12 +41,12 @@ dsh plugin --profile web add dsh-ditto
 The doctor prints plain-language checks:
 
 ```text
-✓ Ditto 0.3.0
-✓ Node.js 22.23.1
-✓ dsh 0.1.5-rc.1 detected
-✓ pnpm 11.22.0 detected (used by "dsh plugin")
+✓ Ditto 0.4.0
+✓ Node.js 24.19.0
+✓ dsh 0.2.2-rc.4 detected
+✓ pnpm 11.25.0 detected (used by "dsh plugin")
 ✓ dsh-ditto is installed in profile "web" and listed in its bundles
-✓ 17 of 17 tools registered
+✓ 18 of 18 tools registered
 ✓ skill "ditto" registered
 ✓ stateRoot /your/project/.dsh-ditto is writable
 ✓ allowedSourceRoots /your/project
@@ -54,7 +54,9 @@ The doctor prints plain-language checks:
 ✓ approvalUnavailable deny
 ```
 
-Requirements: Node.js 22 or later, DSH 0.1.5-rc.1 or later (see [Compatibility](#compatibility)). If the host packages are not resolvable yet, boot the profile once (`dsh web`) so DSH links them, then run the doctor again.
+Requirements: Node.js **24.9.0 or later** and DSH **0.2.2-rc.1 or 0.2.2-rc.4** (see [Compatibility](#compatibility)). Version 0.4 upgrades the host API baseline; use Ditto 0.3 for DSH 0.1 profiles.
+
+DSH 0.2 resolves host packages inside its plugin runtime. A standalone profile CLI may report that the component mount is unavailable; booting does not create fallback links. Ask the DSH agent to run **`ditto_doctor`** to check the active 18 tools, skill, folders, and approval policy. Use `dsh-ditto doctor --json` for machine-readable CLI diagnostics.
 
 ## Quick start
 
@@ -73,7 +75,7 @@ npx dsh-ditto demo              # the same batch in a local browser review page
 
 ## Example: Code → Spec
 
-Ditto's first use case is turning a TypeScript/JavaScript or Java codebase into consistent, evidence-backed Markdown specifications.
+Ditto's first use case is turning a TypeScript/JavaScript, Java, or Python codebase into consistent, evidence-backed Markdown specifications.
 
 1. **Discover.** Ditto scans the folder (skipping `node_modules`, build output, tests, declaration files) and reports exactly what is in scope and what was excluded, and why.
 2. **Review three samples.** It picks three structurally different modules — the richest exporter, the module with the most imports, the smallest — and the agent drafts a spec for each from real, line-numbered source evidence. You edit the Markdown until it reads the way you want.
@@ -173,7 +175,7 @@ Ditto is a DSH plugin, not a Markdown skill. The package contains:
 |---|---|
 | Cordis service | `dsh-ditto/dsh` — one service that registers the skill and the tools on the host's public `skills` and `tools` services; unloading the bundle removes everything |
 | Skill | `skills/ditto/SKILL.md` — the routing layer the agent reads (model- and user-invocable) |
-| Native tools | 17 typed tools: 9 for Code → Spec, 8 for file organisation ([reference](docs/TOOLS.md)) |
+| Native tools | 18 typed tools: 9 for Code → Spec, 8 for file organisation, and `ditto_doctor` ([reference](docs/TOOLS.md)) |
 | Deterministic core | discovery, RE2 matching, safe path rendering, evidence/citation validation, sidecar and ZIP rendering, hashing, revision/digest gates, durable state |
 | Local review page | an optional loopback-only browser page used by the demo and `dsh-ditto serve` |
 
@@ -183,9 +185,10 @@ Ditto depends only on public DSH APIs (`@deepseek-ai/cordis`, `@deepseek-ai/dsh-
 
 | Ditto | DSH | Node.js | Status |
 |---|---|---|---|
-| 0.2.0 | 0.1.5-rc.1, 0.1.5-rc.2 | 22, 24 | release candidate — build, test, component, tarball, and real isolated-profile install/boot/doctor gates all pass |
-| 0.2.0 | 0.1.6-alpha.1 | 22, 24 | canary — non-blocking CI |
-| 0.1.0 | 0.1.5-rc.1, 0.1.5-rc.2 | 22, 24 | supported historical release |
+| 0.4.0 | 0.2.2-rc.4 (`next`) | ≥24.9.0 | component, tarball, and real isolated-profile verification |
+| 0.4.0 | 0.2.2-rc.1 (`latest`) | ≥24.9.0 | clean-install tarball, native diagnostic, and real isolated-profile verification |
+| 0.4.0 | `next` / `alpha` | 24, 26 | canary CI; future tags are not an automatic support promise |
+| 0.1–0.3 | 0.1.x | 22, 24 | historical releases; use their matching documentation |
 
 DSH is moving fast; see [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md) for what exactly is tested and how to report a breaking change.
 
@@ -206,7 +209,7 @@ More in [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md).
 
 ## Contributing
 
-Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Good places to start: a language adapter for Python, C#, or Go (the seam is small and documented), custom spec templates, better sample selection, UI localisation, and documentation examples. Look for the `good first issue` and `help wanted` labels.
+Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Good places to start: a language adapter for C# or Go (the seam is small and documented), custom spec templates, better sample selection, UI localisation, and documentation examples. Look for the `good first issue` and `help wanted` labels.
 
 ## Roadmap
 

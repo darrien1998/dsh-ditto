@@ -10,6 +10,7 @@ Skill: `ditto` — Review-first batch work. Use when a request covers a whole fo
 
 | Tool | Workflow | Stage | Writes | Approval |
 |---|---|---|---|---|
+| `ditto_doctor` | Diagnostics | Diagnostics | One temporary writability probe, removed immediately; no plans or output files. | None. |
 | `ditto_preview` | File organisation | Discover / preview | Durable plan metadata under stateRoot only; no source or output files. | None. Read-only preview. |
 | `ditto_revise` | File organisation | Review / edit | Durable plan metadata only. | None. Only submit edits the user asked for. |
 | `ditto_revise_rule` | File organisation | Review / rule revision | Durable plan metadata only. | None. Only submit the rule the user asked for. |
@@ -494,5 +495,29 @@ Skill: `ditto` — Review-first batch work. Use when a request covers a whole fo
 | `plan_id` | string | no | Required for action save: id from ditto_preview or ditto_status. |
 | `name` | string | no | Required for action save: recipe name from 1 to 80 characters. |
 | `recipe_id` | string | no | Required for action get: id returned by action=list or action=save. |
+
+**Output.** A JSON object; the tool result is the lossless JSON rendered as text.
+
+## Diagnostics
+
+### `ditto_doctor`
+
+**Purpose.** Inspect component versions, configured folders, approval policy, and the active tool and skill registrations without subprocesses.
+
+**Stage.** Diagnostics
+
+**Writes.** One temporary writability probe, removed immediately; no plans or output files.
+
+**Approval.** None.
+
+**Failure cases.** Invalid or unwritable state configuration and missing registrations are reported as failed checks; cancellation stops the diagnostic.
+
+**Description shown to the agent.**
+
+> Diagnose the active Ditto plugin: DSH component versions, workspace and state configuration, approval policy, and actual registered tools and skill. Runs no shell commands and applies no plans. A temporary state-writability probe is removed immediately. Use this when installation, compatibility, or batch configuration fails.
+
+**Input.**
+
+_No parameters._
 
 **Output.** A JSON object; the tool result is the lossless JSON rendered as text.

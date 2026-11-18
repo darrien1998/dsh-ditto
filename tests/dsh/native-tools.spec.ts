@@ -4,7 +4,8 @@ import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 import SkillRegistry from '@deepseek-ai/dsh-skill'
 import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
-import ToolRuntime from '@deepseek-ai/dsh-tools'
+import ToolRuntime, { type ToolExecutionResult } from '@deepseek-ai/dsh-tools'
+import * as NativeExecutor from '@deepseek-ai/dsh-tool-executor-native'
 import { afterEach, describe, expect, it } from 'vitest'
 import { DshDitto, TOOL_NAMES, dittoSkill } from '../../src/dsh/index.js'
 
@@ -15,11 +16,25 @@ async function host(): Promise<Context> {
   const ctx = new Context()
   await ctx.plugin(SkillRegistry, {})
   await ctx.plugin(SystemPrompt, {})
-  await ctx.plugin(ToolRuntime, { mode: 'native' })
+  await ctx.plugin(ToolRuntime, {})
+  await ctx.plugin(NativeExecutor, {})
   return ctx
 }
 
 describe('Ditto native tools on the published Cordis + ToolRuntime', () => {
+  it('diagnoses the active host and reports approval availability', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'dsh-ditto-diagnostic-'))
+    roots.push(root)
+    const ctx = await host()
+    try {
+      ctx.provide('profileContext', { name: 'custom-profile', home: join(root, 'dsh-home') })
+      await ctx.plugin(DshDitto, { workspaceRoot: root })
+      const report = value(await call(ctx, 'ditto_doctor', {}))
+      expect(report.ok).toBe(true)
+      expect(report.checks).toEqual(expect.arrayContaining([expect.objectContaining({ label: '18 of 18 tools registered', status: 'ok' }), expect.objectContaining({ label: 'approval host', status: 'warn' })]))
+      expect(report.checks).toContainEqual(expect.objectContaining({ label: expect.stringContaining('profile "custom-profile" is not initialised') }))
+    } finally { await ctx.fiber.dispose() }
+  })
   it('registers the bundled skill from SKILL.md and every catalogued tool, and removes them on unload', async () => {
     const root = await mkdtemp(join(tmpdir(), 'dsh-ditto-routing-'))
     roots.push(root)
@@ -197,10 +212,11 @@ describe('Ditto native tools on the published Cordis + ToolRuntime', () => {
 
 let callNumber = 0
 async function call(ctx: Context, name: string, arguments_: unknown) {
-  return ctx.tools.execute({ callId: `native-${++callNumber}` as never, name, arguments: arguments_, signal: new AbortController().signal })
+  const batch = await ctx.tools.execute({ calls: [{ type: 'tool-call', id: `native-${++callNumber}` as never, name, arguments: JSON.stringify(arguments_) }], signal: new AbortController().signal })
+  return batch.results[0]!.result
 }
 
-function value(result: Awaited<ReturnType<ToolRuntime['execute']>>): Record<string, unknown> {
+function value(result: ToolExecutionResult): Record<string, unknown> {
   if (result.isError) throw new Error(result.error.message)
   return result.value as Record<string, unknown>
 }

@@ -37,6 +37,7 @@ import { insideAnyRoot, insideWorkspace, overlaps, resolveConfig, type DshDittoC
 import { dittoSkill } from './skill.js'
 import { fileTools } from './tools/files.js'
 import { specTools } from './tools/spec.js'
+import { diagnosticTools } from './tools/diagnostics.js'
 import { withMutation } from './tools/shared.js'
 
 export interface PlanView {
@@ -110,7 +111,7 @@ export class DshDitto extends Service<DshDittoConfig> {
     this.host = ctx
     this.config = resolveConfig(config)
     ctx.skills.register(dittoSkill())
-    for (const tool of [...fileTools(this), ...specTools(this)]) ctx.tools.register(tool)
+    for (const tool of [...fileTools(this), ...specTools(this), ...diagnosticTools(this)]) ctx.tools.register(tool)
   }
 
   // ---- File organisation ------------------------------------------------

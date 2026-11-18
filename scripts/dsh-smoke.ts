@@ -12,7 +12,7 @@ import { dirname, join } from 'node:path'
 import { spawn } from 'node:child_process'
 
 const require = createRequire(import.meta.url)
-const EXPECTED = process.env.DITTO_DSH_VERSION ?? '0.1.5-rc.1'
+const EXPECTED = process.env.DITTO_DSH_VERSION ?? '0.2.2-rc.4'
 
 async function main(): Promise<void> {
   for (const name of ['@deepseek-ai/dsh-tools', '@deepseek-ai/dsh-skill', '@deepseek-ai/dsh-system-prompt']) assertVersion(name)

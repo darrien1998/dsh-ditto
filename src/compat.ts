@@ -13,12 +13,12 @@ export function dittoVersion(): string {
  * change is noticed early. Keep docs/COMPATIBILITY.md in step with this table.
  */
 export const COMPATIBILITY = {
-  node: { minimum: 22, tested: [22, 24] },
+  node: { minimum: 24, minimumVersion: '24.9.0', tested: [24, 26] },
   dsh: {
-    supported: ['0.1.5-rc.3'],
-    canary: ['0.1.7-alpha.2', '0.2.0-rc.2'],
+    supported: ['0.2.2-rc.4', '0.2.2-rc.1'],
+    canary: ['0.2.2-alpha.3'],
     /** Ranges the plugin's peerDependencies accept. */
-    peerRange: { '@deepseek-ai/cordis': '^4.0.2', '@deepseek-ai/dsh-tools': '>=0.1.5-rc.1 <0.2.0' },
+    peerRange: { '@deepseek-ai/cordis': '~4.0.6-alpha.2 || ~4.1.0', '@deepseek-ai/dsh-tools': '>=0.2.2-alpha.3 <0.3.0' },
   },
   /** Host services Ditto uses: required at mount time, or optional and read at call time. */
   hostServices: { required: ['tools', 'skills'], optional: ['approval'] },
@@ -29,4 +29,15 @@ export function dshSupportLevel(version: string): 'supported' | 'canary' | 'unte
   if ((COMPATIBILITY.dsh.supported as readonly string[]).includes(version)) return 'supported'
   if ((COMPATIBILITY.dsh.canary as readonly string[]).includes(version)) return 'canary'
   return 'untested'
+}
+
+/** Check the complete Node baseline, including the DSH launcher's minor floor. */
+export function isSupportedNodeVersion(version: string): boolean {
+  if (!/^\d+\.\d+\.\d+$/.test(version)) return false
+  const actual = version.split('.').map(Number)
+  const minimum = COMPATIBILITY.node.minimumVersion.split('.').map(Number)
+  for (let index = 0; index < 3; index++) {
+    if (actual[index]! !== minimum[index]!) return actual[index]! > minimum[index]!
+  }
+  return true
 }

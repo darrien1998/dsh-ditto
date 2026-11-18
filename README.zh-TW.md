@@ -41,12 +41,12 @@ dsh plugin --profile web add dsh-ditto
 doctor 用白話輸出檢查結果：
 
 ```text
-✓ Ditto 0.3.0
-✓ Node.js 22.23.1
-✓ dsh 0.1.5-rc.1 detected
-✓ pnpm 11.22.0 detected (used by "dsh plugin")
+✓ Ditto 0.4.0
+✓ Node.js 24.19.0
+✓ dsh 0.2.2-rc.4 detected
+✓ pnpm 11.25.0 detected (used by "dsh plugin")
 ✓ dsh-ditto is installed in profile "web" and listed in its bundles
-✓ 17 of 17 tools registered
+✓ 18 of 18 tools registered
 ✓ skill "ditto" registered
 ✓ stateRoot /your/project/.dsh-ditto is writable
 ✓ allowedSourceRoots /your/project
@@ -54,7 +54,9 @@ doctor 用白話輸出檢查結果：
 ✓ approvalUnavailable deny
 ```
 
-需求：Node.js 22 以上、DSH 0.1.5-rc.1 以上（見[相容性](#相容性)）。若 doctor 說 host 套件還找不到，先啟動一次 profile（`dsh web`）讓 DSH 建立連結，再跑一次即可。
+需求：Node.js **24.9.0 以上**，DSH **0.2.2-rc.1 或 0.2.2-rc.4**（見[相容性](#相容性)）。0.4 版更新了宿主 API 基準；DSH 0.1 的 profile 請使用 Ditto 0.3。
+
+DSH 0.2 只在插件執行環境中解析宿主套件。獨立 CLI 可能顯示無法掛載元件，啟動 profile 也不會建立舊版 fallback 連結。請讓 DSH 代理呼叫 **`ditto_doctor`**，檢查實際註冊的 18 個工具、技能、資料夾與審批設定；自動化診斷可使用 `dsh-ditto doctor --json`。
 
 ## 快速開始
 
@@ -73,7 +75,7 @@ npx dsh-ditto demo              # 同一批工作，在本機瀏覽器審閱頁�
 
 ## 範例：程式碼 → 規格
 
-Ditto 的第一個用途：把 TypeScript／JavaScript 或 Java 程式庫變成格式一致、每句都有來源證據的 Markdown 規格。
+Ditto 的第一個用途：把 TypeScript／JavaScript、Java 或 Python 程式庫變成格式一致、每句都有來源證據的 Markdown 規格。
 
 1. **掃描。** 掃描資料夾（略過 `node_modules`、建置輸出、測試、宣告檔），清楚列出哪些在範圍內、哪些被排除以及原因。
 2. **審閱三份樣本。** 挑出三個結構不同的模組——匯出最多的、import 最多的、最小的——agent 依真實、帶行號的來源證據各寫一份規格。你直接改 Markdown，改到你要的樣子。
@@ -155,7 +157,7 @@ Ditto 是 DSH 插件，不是一份 Markdown skill。套件包含：
 |---|---|
 | Cordis service | `dsh-ditto/dsh`——一個 service，在 host 公開的 `skills` 與 `tools` service 上註冊 skill 與工具；卸載 bundle 就全部移除 |
 | Skill | `skills/ditto/SKILL.md`——agent 讀的路由層（模型與使用者皆可呼叫） |
-| 原生工具 | 17 個具型別的工具：9 個給程式碼 → 規格、8 個給檔案整理（[參考](docs/TOOLS.md)） |
+| 原生工具 | 18 個具型別的工具：9 個給程式碼 → 規格、8 個給檔案整理，以及 `ditto_doctor` 診斷工具（[參考](docs/TOOLS.md)） |
 | 確定性核心 | 掃描、RE2 擷取、安全路徑渲染、證據／引用驗證、sidecar 與 ZIP 串流、hash、revision／digest 閘門、持久狀態 |
 | 本機審閱頁 | 選用的 loopback-only 瀏覽器頁面，供 demo 與 `dsh-ditto serve` 使用 |
 
@@ -165,9 +167,10 @@ Ditto 只依賴公開的 DSH API（`@deepseek-ai/cordis`、`@deepseek-ai/dsh-too
 
 | Ditto | DSH | Node.js | 狀態 |
 |---|---|---|---|
-| 0.2.0 | 0.1.5-rc.1、0.1.5-rc.2 | 22、24 | release candidate——build／tests／component／tarball 與真實隔離 profile 安裝、啟動、doctor 閘門全部通過 |
-| 0.2.0 | 0.1.6-alpha.1 | 22、24 | canary——CI 非阻斷工作 |
-| 0.1.0 | 0.1.5-rc.1、0.1.5-rc.2 | 22、24 | 歷史支援版本 |
+| 0.4.0 | 0.2.2-rc.4（`next`） | ≥24.9.0 | 元件、打包安裝及真實隔離 profile 驗證 |
+| 0.4.0 | 0.2.2-rc.1（`latest`） | ≥24.9.0 | 乾淨安裝、原生診斷與真實隔離 profile 驗證 |
+| 0.4.0 | `next`／`alpha` | 24、26 | canary CI；不保證未來版本自動相容 |
+| 0.1–0.3 | 0.1.x | 22、24 | 歷史版本，請參照對應版本文件 |
 
 DSH 仍在快速開發；實際測了什麼、如何回報 breaking change，見 [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md)。
 
@@ -188,7 +191,7 @@ npm run smoke:profile    # 在隔離 DSH_HOME 用真實 `dsh plugin add` 安裝�
 
 ## 貢獻
 
-歡迎 issue 與 pull request，請看 [CONTRIBUTING.md](CONTRIBUTING.md)。適合入手的方向：Python、C#、Go 的 language adapter（介面很小、有文件）、自訂規格範本、更好的樣本挑選、UI 在地化、文件範例。可以從 `good first issue` 與 `help wanted` 標籤開始。
+歡迎 issue 與 pull request，請看 [CONTRIBUTING.md](CONTRIBUTING.md)。適合入手的方向：C#、Go 的 language adapter（介面很小、有文件）、自訂規格範本、更好的樣本挑選、UI 在地化、文件範例。可以從 `good first issue` 與 `help wanted` 標籤開始。
 
 ## 路線圖
 

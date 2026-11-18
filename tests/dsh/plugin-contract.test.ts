@@ -41,7 +41,7 @@ describe('SKILL.md is the single source of truth for the Ditto skill', () => {
 describe('tool catalog', () => {
   it('covers every registered tool exactly once with the facts docs/TOOLS.md needs', () => {
     expect(new Set(TOOL_NAMES).size).toBe(TOOL_NAMES.length)
-    expect(TOOL_NAMES).toHaveLength(17)
+    expect(TOOL_NAMES).toHaveLength(18)
     for (const fact of TOOL_CATALOG) {
       expect(fact.name).toMatch(/^ditto(_spec)?_[a-z_]+$/)
       for (const field of ['stage', 'purpose', 'writes', 'approval', 'failures'] as const) expect(fact[field].length).toBeGreaterThan(3)
@@ -64,6 +64,15 @@ describe('plugin configuration', () => {
 describe('human approval gate', () => {
   const exec = { agent: { id: 'agent' } as never, callId: 'call-1' as never, signal: new AbortController().signal }
   const stubHost = (request: () => Promise<'allowed-once' | 'rejected' | 'cancelled' | 'unavailable'>): Context => ({ get: (name: string) => name === 'approval' ? { request } : undefined } as unknown as Context)
+
+  it('refuses cancellation before approval and a late grant after cancellation', async () => {
+    const controller = new AbortController()
+    const cancelledExec = { ...exec, signal: controller.signal }
+    const lateHost = stubHost(async () => { controller.abort(); return 'allowed-once' })
+    await expect(requireHumanApproval({ ctx: lateHost, mode: 'host', exec: cancelledExec, toolName: 'ditto_apply', reason: 'test' })).rejects.toThrow('cancelled')
+    const unusedHost = stubHost(async () => { throw new Error('must not ask') })
+    for (const mode of ['host', 'agent'] as const) await expect(requireHumanApproval({ ctx: unusedHost, mode, unavailable: 'agent', exec: cancelledExec, toolName: 'ditto_apply', reason: 'test' })).rejects.toThrow('cancelled')
+  })
 
   it('asks the host once and proceeds only on a one-shot grant', async () => {
     const asked: unknown[] = []

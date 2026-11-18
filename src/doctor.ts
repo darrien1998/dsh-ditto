@@ -6,8 +6,9 @@ import { constants } from 'node:fs'
 import { createRequire } from 'node:module'
 import { homedir, tmpdir } from 'node:os'
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
-import { COMPATIBILITY, dittoVersion, dshSupportLevel } from './compat.js'
+import { COMPATIBILITY, dittoVersion, dshSupportLevel, isSupportedNodeVersion } from './compat.js'
 import { TOOL_NAMES } from './dsh/catalog.js'
+import { resolveConfig } from './dsh/config.js'
 
 export type CheckStatus = 'ok' | 'warn' | 'fail'
 export interface DoctorCheck { status: CheckStatus; label: string; detail?: string }
@@ -30,6 +31,8 @@ export interface DoctorOptions {
   env?: NodeJS.ProcessEnv
   /** Skip the in-process plugin mount (used by tests that already cover it). */
   skipMount?: boolean
+  /** Do not launch CLI subprocesses (used by the native diagnostic tool). */
+  skipCommands?: boolean
 }
 
 /**
@@ -43,21 +46,26 @@ export async function runDoctor(options: DoctorOptions = {}): Promise<DoctorRepo
 
   add('ok', `Ditto ${dittoVersion()}`)
 
-  const nodeMajor = Number(process.versions.node.split('.')[0])
-  if (nodeMajor >= COMPATIBILITY.node.minimum) add('ok', `Node.js ${process.versions.node}`)
-  else add('fail', `Node.js ${process.versions.node} is too old`, `Ditto needs Node.js ${COMPATIBILITY.node.minimum} or later.`)
+  if (isSupportedNodeVersion(process.versions.node)) add('ok', `Node.js ${process.versions.node}`)
+  else add('fail', `Node.js ${process.versions.node} is too old`, `Ditto needs Node.js ${COMPATIBILITY.node.minimumVersion} or later.`)
 
-  const dsh = commandVersion('dsh')
-  if (dsh) add(dshSupportLevel(dsh) === 'supported' ? 'ok' : 'warn', `dsh ${dsh} detected`, dshSupportLevel(dsh) === 'supported' ? undefined : `Ditto ${dittoVersion()} is tested against DSH ${COMPATIBILITY.dsh.supported.join(', ')}; ${dsh} is ${dshSupportLevel(dsh)}.`)
-  else add('warn', 'dsh command not found on PATH', `Install DeepSeek Harness first: npm install -g @deepseek-ai/dsh@${COMPATIBILITY.dsh.supported[0]}`)
+  if (!options.skipCommands) {
+    const dsh = commandVersion('dsh')
+    if (dsh) add(dshSupportLevel(dsh) === 'supported' ? 'ok' : 'warn', `dsh ${dsh} detected`, dshSupportLevel(dsh) === 'supported' ? undefined : `Ditto ${dittoVersion()} is tested against DSH ${COMPATIBILITY.dsh.supported.join(', ')}; ${dsh} is ${dshSupportLevel(dsh)}.`)
+    else add('warn', 'dsh command not found on PATH', `Install DeepSeek Harness first: npm install -g @deepseek-ai/dsh@${COMPATIBILITY.dsh.supported[0]}`)
 
-  const pnpm = commandVersion('pnpm')
-  if (pnpm) add('ok', `pnpm ${pnpm} detected (used by "dsh plugin")`)
-  else add('warn', 'pnpm not found on PATH', '"dsh plugin --profile <name> add dsh-ditto" forwards to pnpm; install pnpm to manage profile plugins.')
+    const pnpm = commandVersion('pnpm')
+    if (pnpm) add('ok', `pnpm ${pnpm} detected (used by "dsh plugin")`)
+    else add('warn', 'pnpm not found on PATH', '"dsh plugin --profile <name> add dsh-ditto" forwards to pnpm; install pnpm to manage profile plugins.')
+  }
 
   const home = env.DSH_HOME ? resolve(env.DSH_HOME) : join(homedir(), '.dsh')
   // `dsh plugin --profile <name> exec dsh-ditto doctor` runs inside the profile directory, so detect the profile from there.
   const profile = options.profile ?? profileFromCwd(home) ?? 'web'
+  if (!profile.trim() || profile === '.' || profile === '..' || profile.toLowerCase() === 'node_modules' || /[\\/<>:"|?*\u0000-\u001f]/.test(profile)) {
+    add('fail', 'Invalid DSH profile name', 'Use one folder name without path separators, traversal, control characters, or reserved filename characters.')
+    return { ok: false, checks }
+  }
   const profileDir = join(home, 'profiles', profile)
   const manifestPath = join(profileDir, 'package.json')
   if (!existsSync(manifestPath)) add('warn', `DSH profile "${profile}" is not initialised at ${profileDir}`, `Run: dsh plugin --profile ${profile} add dsh-ditto`)
@@ -79,17 +87,21 @@ export async function runDoctor(options: DoctorOptions = {}): Promise<DoctorRepo
 
   const peers = peerVersions()
   for (const [name, version] of Object.entries(peers)) {
-    if (!version) { add('warn', `${name} is not resolvable from here`, 'Run the doctor inside the profile: dsh plugin --profile ' + profile + ' exec dsh-ditto doctor'); continue }
-    const level = name === '@deepseek-ai/cordis' ? 'supported' : dshSupportLevel(version)
+    if (!version) { add('warn', `${name} is not resolvable from here`, 'Ask the DSH agent to run ditto_doctor inside the active profile to inspect runtime registrations.'); continue }
+    const level = name === '@deepseek-ai/cordis' ? (/^4\.1\.\d+$/.test(version) ? 'supported' : 'untested') : dshSupportLevel(version)
     add(level === 'supported' ? 'ok' : 'warn', `${name} ${version}`, level === 'supported' ? undefined : `${level} DSH version; tested versions: ${COMPATIBILITY.dsh.supported.join(', ')}`)
   }
 
   if (!options.skipMount) {
-    const mount = await mountProbe()
-    if (mount.error) add('fail', 'Ditto plugin could not be mounted on the DSH component host', mount.error)
-    else {
-      add(mount.tools === TOOL_NAMES.length ? 'ok' : 'fail', `${mount.tools} of ${TOOL_NAMES.length} tools registered`)
-      add(mount.skill ? 'ok' : 'fail', mount.skill ? 'skill "ditto" registered' : 'skill "ditto" missing')
+    if (Object.values(peers).some(version => !version)) {
+      add('warn', 'Component mount unavailable in this standalone CLI', 'DSH 0.2 resolves host packages inside the plugin runtime. Ask the DSH agent to run ditto_doctor to verify the active registrations; booting the profile does not link these packages for standalone CLIs.')
+    } else {
+      const mount = await mountProbe()
+      if (mount.error) add('fail', 'Ditto plugin could not be mounted on the DSH component host', mount.error)
+      else {
+        add(mount.tools === TOOL_NAMES.length ? 'ok' : 'fail', `${mount.tools} of ${TOOL_NAMES.length} tools registered`)
+        add(mount.skill ? 'ok' : 'fail', mount.skill ? 'skill "ditto" registered' : 'skill "ditto" missing')
+      }
     }
   }
 
@@ -98,9 +110,12 @@ export async function runDoctor(options: DoctorOptions = {}): Promise<DoctorRepo
   else add('fail', `workspaceRoot ${workspaceRoot} is not a directory`)
 
   const stateRoot = resolve(workspaceRoot, options.stateRoot ?? '.dsh-ditto')
-  const writable = await probeWritable(stateRoot)
-  if (writable.ok) add('ok', `stateRoot ${stateRoot} is writable${existsSync(stateRoot) ? '' : ' (will be created on first use)'}`)
-  else add('fail', `stateRoot ${stateRoot} is not writable`, writable.error)
+  try {
+    resolveConfig({ workspaceRoot, stateRoot, allowedSourceRoots: options.allowedSourceRoots, allowedDestinationRoots: options.allowedDestinationRoots, approvalUnavailable: options.approvalUnavailable })
+    const writable = await probeWritable(stateRoot)
+    if (writable.ok) add('ok', `stateRoot ${stateRoot} is writable${existsSync(stateRoot) ? '' : ' (will be created on first use)'}`)
+    else add('fail', `stateRoot ${stateRoot} is not writable`, writable.error)
+  } catch (error) { add('fail', 'Invalid Ditto folder configuration', message(error)) }
 
   // File organisation may read/write outside the workspace only through these
   // profile-owned allowlists. Code-to-Spec always stays inside workspaceRoot.
@@ -161,7 +176,7 @@ async function mountProbe(): Promise<{ tools: number; skill: boolean; error?: st
     const ctx = new Context()
     await ctx.plugin(skills.default, {})
     await ctx.plugin(prompt.default, {})
-    await ctx.plugin(tools.default, { mode: 'native' })
+    await ctx.plugin(tools.default, {})
     await ctx.plugin(plugin.DshDitto, { workspaceRoot: root, stateRoot: join(root, '.dsh-ditto') })
     const registered = ctx.tools.schemas().map(tool => tool.name).filter(name => TOOL_NAMES.includes(name)).length
     const skill = (await ctx.skills.list()).some(entry => entry.name === 'ditto')

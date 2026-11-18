@@ -48,3 +48,10 @@ Under `stateRoot` (default `.dsh-ditto` inside `workspaceRoot`), Ditto stores pl
 ## Reporting
 
 Report any way to escape an output root, overwrite a file, bypass approval, execute source/SQL, or adopt an unreviewed deliverable through [SECURITY.md](../SECURITY.md).
+
+## 0.4 diagnostic and cancellation gates
+
+- `requireHumanApproval` checks cancellation before any mode/fallback and again after the host resolves. A delayed grant cannot revive a cancelled invocation (`tests/dsh/plugin-contract.test.ts`).
+- Doctor uses the same configuration validator as the plugin before probing state. Invalid profile names and state outside the workspace fail (`tests/cli/demo-and-doctor.test.ts`).
+- Native `ditto_doctor` launches no subprocesses and checks the active tool and skill registrations. It removes its temporary writability probe immediately (`tests/dsh/native-tools.spec.ts`).
+- Python is read as text. Comments and strings do not create structural declarations; mixed Python/Java/TypeScript batches pass the existing evidence, approval, apply, and resume gates without executing sources (`tests/spec/python-language.test.ts`). Structural facts remain approximate hints, not evidence-backed semantic claims.

@@ -2,16 +2,34 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.4.0] - 2026-11-18
+
+### Changed
+
+- Upgrade to the DSH 0.2.2 host API, Cordis ~4.1.0, Node.js >=24.9.0, TypeScript 7, and current test tooling. DSH 0.1 profiles must retain Ditto 0.3.
+- Peer ranges include the matching DSH 0.2.2-alpha.3 / Cordis 4.0.6-alpha.2 preview pair so the alpha canary verifies real clean installation.
+- Integration calls now use DSH tool-call batches and the separate native executor. CI targets Node 24/26 and DSH 0.2.2-rc.1/rc.4 profiles.
+- Standalone doctor distinguishes unavailable CLI peer resolution from a failed component mount; DSH 0.2 no longer creates legacy module fallback links.
 
 ### Added
+
+- `ditto_doctor`: inspect the active plugin, all 18 tool registrations, skill, component versions, configured roots, and approval policy without subprocesses.
+- `doctor --json` and strict CLI value/option validation, including paths containing equals signs.
+- Python `.py` structural adapter with comment/string masking, `.pyi` exclusions, virtual-environment/cache exclusions, and mixed-language review/apply/resume coverage.
+- Profile smoke now verifies actual in-runtime diagnostic success and registrations, supports an explicit `DITTO_DSH_CLI`, prevents browser opening, and fails when prerequisites are missing.
+
+### Security
+
+- Cancellation is checked before requesting approval and after a delayed grant; a late grant cannot revive a cancelled operation.
+- Doctor rejects invalid profile names and state paths using the plugin's actual folder rules before probing writability.
+- Existing persisted plan/recipe compatibility and copy/no-overwrite safety remain covered by regression tests.
+
+### Included upstream changes
 
 - Java (`.java`) language adapter for Code → Spec with text-only import and public top-level class, interface, enum, and record structural facts.
 - Java declaration-file exclusions for `package-info.java` and `module-info.java`, plus Maven `target/` discovery exclusion.
 
-### Fixed
-
-- CI canary installs now use the Cordis version required by each DSH tag, and the real-profile smoke verifies the current 0.1.5-rc.3 launcher.
+- Upstream CI canary fixes select the Cordis version required by each DSH tag.
 
 ## [0.3.0] - 2026-09-20
 
