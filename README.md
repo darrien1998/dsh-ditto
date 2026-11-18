@@ -27,23 +27,23 @@ Files:       preview every proposed copy and deliverable → revise → approve 
 Ditto is a native DSH plugin. One command installs it into a DSH profile:
 
 ```bash
-dsh plugin --profile web add https://github.com/darrien1998/dsh-ditto/releases/download/v0.5.0/dsh-ditto-0.5.0.tgz
+dsh plugin --profile web add https://github.com/darrien1998/dsh-ditto/releases/download/v0.6.0/dsh-ditto-0.6.0.tgz
 ```
 
-The GitHub asset installs **0.5.0** explicitly. The npm registry currently carries an older release; its badge does not describe the GitHub release.
+The GitHub asset installs **0.6.0** explicitly. The npm registry currently carries an older release; its badge does not describe the GitHub release.
 
 `dsh plugin` forwards to pnpm inside the profile directory, so [pnpm](https://pnpm.io) must be on your PATH. Use `--profile headless`, `--profile acp`, or any custom profile name instead of `web` as needed.
 
 | | |
 |---|---|
-| **Update** | `dsh plugin --profile web add https://github.com/darrien1998/dsh-ditto/releases/download/v0.5.0/dsh-ditto-0.5.0.tgz` |
+| **Update** | `dsh plugin --profile web add https://github.com/darrien1998/dsh-ditto/releases/download/v0.6.0/dsh-ditto-0.6.0.tgz` |
 | **Remove** | `dsh plugin --profile web remove dsh-ditto` |
 | **Verify** | `dsh plugin --profile web exec dsh-ditto doctor` |
 
 The doctor prints plain-language checks:
 
 ```text
-✓ Ditto 0.5.0
+✓ Ditto 0.6.0
 ✓ Node.js 24.19.0
 ✓ dsh 0.2.2-rc.4 detected
 ✓ pnpm 11.25.0 detected (used by "dsh plugin")
@@ -71,9 +71,17 @@ You do not have to say "Ditto" or learn any tool names. When a request covers a 
 Want to see the workflow before installing anything? The demo needs no model and no API key:
 
 ```bash
-npx --yes --package=https://github.com/darrien1998/dsh-ditto/releases/download/v0.5.0/dsh-ditto-0.5.0.tgz dsh-ditto demo --headless   # terminal transcript, 16 synthetic modules
-npx --yes --package=https://github.com/darrien1998/dsh-ditto/releases/download/v0.5.0/dsh-ditto-0.5.0.tgz dsh-ditto demo              # the same batch in a local browser review page
+npx --yes --package=https://github.com/darrien1998/dsh-ditto/releases/download/v0.6.0/dsh-ditto-0.6.0.tgz dsh-ditto demo --headless   # terminal transcript, 16 synthetic modules
+npx --yes --package=https://github.com/darrien1998/dsh-ditto/releases/download/v0.6.0/dsh-ditto-0.6.0.tgz dsh-ditto demo              # the same batch in a local browser review page
 ```
+
+## Faster review in 0.6
+
+Samples now start with a rich module and prefer unseen folders, languages and structural shapes for the next two. This deterministic spread avoids spending all three reviews on similar modules; it is not a model-confidence score.
+
+Both local review pages support **Alt + ↓ / ↑** to move between samples and **Alt + Shift + A** to focus the approval button. Press **Enter or Space** to activate the existing action. Shortcuts ignore typing, composition and repeated keys; disabled or busy approval buttons stay unavailable. Visible hints are available in English and Traditional Chinese.
+
+See [product priorities and deferred scope](docs/PRODUCT_DECISIONS.md).
 
 ## Less repeated context, fewer tool turns
 
@@ -91,7 +99,7 @@ A reproducible 30-module synthetic fixture reduced tool calls **71 → 28** and 
 Ditto's first use case is turning a TypeScript/JavaScript, Java, or Python codebase into consistent, evidence-backed Markdown specifications.
 
 1. **Discover.** Ditto scans the folder (skipping `node_modules`, build output, tests, declaration files) and reports exactly what is in scope and what was excluded, and why.
-2. **Review three samples.** It picks three structurally different modules — the richest exporter, the module with the most imports, the smallest — and the agent drafts a spec for each from real, line-numbered source evidence. You edit the Markdown until it reads the way you want.
+2. **Review three samples.** It picks three structurally different modules — starting with a rich module, then prioritising new folders, languages and structural differences — and the agent drafts a spec for each from real, line-numbered source evidence. You edit the Markdown until it reads the way you want.
 3. **Approve.** Your approved samples become the standard for the rest of the batch.
 4. **Preview everything.** Every remaining module gets a spec in the same style. Every factual line cites the source lines it came from; anything the source cannot support is collected under **Needs confirmation** instead of being stated as fact.
 5. **Apply.** After you approve the full preview, Ditto writes the Markdown files into a separate output folder — never into your source tree, never over an existing file.
@@ -198,9 +206,9 @@ Ditto depends only on public DSH APIs (`@deepseek-ai/cordis`, `@deepseek-ai/dsh-
 
 | Ditto | DSH | Node.js | Status |
 |---|---|---|---|
-| 0.5.0 | 0.2.2-rc.4 (`next`) | ≥24.9.0 | component, tarball, and real isolated-profile verification |
-| 0.5.0 | 0.2.2-rc.1 (`latest`) | ≥24.9.0 | clean-install tarball, native diagnostic, and real isolated-profile verification |
-| 0.5.0 | `next` / `alpha` | 24, 26 | canary CI; future tags are not an automatic support promise |
+| 0.6.0 | 0.2.2-rc.4 (`next`) | ≥24.9.0 | component, tarball, and real isolated-profile verification |
+| 0.6.0 | 0.2.2-rc.1 (`latest`) | ≥24.9.0 | clean-install tarball, native diagnostic, and real isolated-profile verification |
+| 0.6.0 | `next` / `alpha` | 24, 26 | canary CI; future tags are not an automatic support promise |
 | 0.1–0.3 | 0.1.x | 22, 24 | historical releases; use their matching documentation |
 
 DSH is moving fast; see [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md) for what exactly is tested and how to report a breaking change.
@@ -222,7 +230,7 @@ More in [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md).
 
 ## Contributing
 
-Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Good places to start: a language adapter for C# or Go (the seam is small and documented), custom spec templates, better sample selection, UI localisation, and documentation examples. Look for the `good first issue` and `help wanted` labels.
+Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). The current priority is real-world examples and measured review quality. Additional languages, custom renderer headings and a DSH-specific panel are outside the current roadmap; community adapters remain possible through the documented seam. Look for the `good first issue` and `help wanted` labels.
 
 ## Roadmap
 

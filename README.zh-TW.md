@@ -27,23 +27,23 @@ AI 做一份很快。Ditto 解決的是做 50 份時，你不必盯 50 次。
 Ditto 是原生 DSH 插件，一行指令裝進 DSH profile：
 
 ```bash
-dsh plugin --profile web add https://github.com/darrien1998/dsh-ditto/releases/download/v0.5.0/dsh-ditto-0.5.0.tgz
+dsh plugin --profile web add https://github.com/darrien1998/dsh-ditto/releases/download/v0.6.0/dsh-ditto-0.6.0.tgz
 ```
 
-以上 GitHub 發行檔明確安裝 **0.5.0**。npm 套件庫目前仍是舊版，npm 徽章不代表 GitHub 發行版。
+以上 GitHub 發行檔明確安裝 **0.6.0**。npm 套件庫目前仍是舊版，npm 徽章不代表 GitHub 發行版。
 
 `dsh plugin` 會在 profile 目錄內轉呼叫 pnpm，所以 PATH 上要有 [pnpm](https://pnpm.io)。需要的話把 `web` 換成 `headless`、`acp` 或你自訂的 profile 名稱。
 
 | | |
 |---|---|
-| **更新** | `dsh plugin --profile web add https://github.com/darrien1998/dsh-ditto/releases/download/v0.5.0/dsh-ditto-0.5.0.tgz` |
+| **更新** | `dsh plugin --profile web add https://github.com/darrien1998/dsh-ditto/releases/download/v0.6.0/dsh-ditto-0.6.0.tgz` |
 | **移除** | `dsh plugin --profile web remove dsh-ditto` |
 | **檢查** | `dsh plugin --profile web exec dsh-ditto doctor` |
 
 doctor 用白話輸出檢查結果：
 
 ```text
-✓ Ditto 0.5.0
+✓ Ditto 0.6.0
 ✓ Node.js 24.19.0
 ✓ dsh 0.2.2-rc.4 detected
 ✓ pnpm 11.25.0 detected (used by "dsh plugin")
@@ -71,9 +71,17 @@ DSH 0.2 只在插件執行環境中解析宿主套件。獨立 CLI 可能顯示�
 想先看流程再安裝？demo 不需要模型、不需要 API key：
 
 ```bash
-npx --yes --package=https://github.com/darrien1998/dsh-ditto/releases/download/v0.5.0/dsh-ditto-0.5.0.tgz dsh-ditto demo --headless   # 終端機逐步輸出，16 個合成模組
-npx --yes --package=https://github.com/darrien1998/dsh-ditto/releases/download/v0.5.0/dsh-ditto-0.5.0.tgz dsh-ditto demo              # 同一批工作，在本機瀏覽器審閱頁操作
+npx --yes --package=https://github.com/darrien1998/dsh-ditto/releases/download/v0.6.0/dsh-ditto-0.6.0.tgz dsh-ditto demo --headless   # 終端機逐步輸出，16 個合成模組
+npx --yes --package=https://github.com/darrien1998/dsh-ditto/releases/download/v0.6.0/dsh-ditto-0.6.0.tgz dsh-ditto demo              # 同一批工作，在本機瀏覽器審閱頁操作
 ```
+
+## 0.6：更有效率的審閱
+
+樣本先選內容豐富的模組，再優先涵蓋不同資料夾、語言與結構，避免三次審閱都花在相似模組上。這是可重現的涵蓋策略，不是模型信心分數。
+
+兩個本機審閱頁都可用 **Alt + ↓ / ↑** 切換樣本，**Alt + Shift + A** 移至核准按鈕，再按 **Enter 或空白鍵** 執行既有動作。輸入文字、輸入法組字與按鍵連發時不啟用；停用或忙碌的核准按鈕維持鎖定。操作提示支援中英文。
+
+詳見[產品優先順序與暫緩範圍](docs/PRODUCT_DECISIONS.md)。
 
 ## 減少重複上下文與工具往返
 
@@ -91,7 +99,7 @@ npx --yes --package=https://github.com/darrien1998/dsh-ditto/releases/download/v
 Ditto 的第一個用途：把 TypeScript／JavaScript、Java 或 Python 程式庫變成格式一致、每句都有來源證據的 Markdown 規格。
 
 1. **掃描。** 掃描資料夾（略過 `node_modules`、建置輸出、測試、宣告檔），清楚列出哪些在範圍內、哪些被排除以及原因。
-2. **審閱三份樣本。** 挑出三個結構不同的模組——匯出最多的、import 最多的、最小的——agent 依真實、帶行號的來源證據各寫一份規格。你直接改 Markdown，改到你要的樣子。
+2. **審閱三份樣本。** 挑出三個結構不同的模組——先取內容豐富的模組，再優先涵蓋不同資料夾、語言與結構——agent 依真實、帶行號的來源證據各寫一份規格。你直接改 Markdown，改到你要的樣子。
 3. **核准。** 核准後的樣本成為整批的標準。
 4. **預覽全部。** 其餘每個模組都以同樣風格產生規格。每一句事實都引用來源行號；來源無法支持的內容集中在 **Needs confirmation**，不會被寫成事實。
 5. **寫入。** 你核准完整預覽後，Ditto 才把 Markdown 寫進獨立的輸出資料夾——不碰原始碼、不覆寫既有檔案。
@@ -180,9 +188,9 @@ Ditto 只依賴公開的 DSH API（`@deepseek-ai/cordis`、`@deepseek-ai/dsh-too
 
 | Ditto | DSH | Node.js | 狀態 |
 |---|---|---|---|
-| 0.5.0 | 0.2.2-rc.4（`next`） | ≥24.9.0 | 元件、打包安裝及真實隔離 profile 驗證 |
-| 0.5.0 | 0.2.2-rc.1（`latest`） | ≥24.9.0 | 乾淨安裝、原生診斷與真實隔離 profile 驗證 |
-| 0.5.0 | `next`／`alpha` | 24、26 | canary CI；不保證未來版本自動相容 |
+| 0.6.0 | 0.2.2-rc.4（`next`） | ≥24.9.0 | 元件、打包安裝及真實隔離 profile 驗證 |
+| 0.6.0 | 0.2.2-rc.1（`latest`） | ≥24.9.0 | 乾淨安裝、原生診斷與真實隔離 profile 驗證 |
+| 0.6.0 | `next`／`alpha` | 24、26 | canary CI；不保證未來版本自動相容 |
 | 0.1–0.3 | 0.1.x | 22、24 | 歷史版本，請參照對應版本文件 |
 
 DSH 仍在快速開發；實際測了什麼、如何回報 breaking change，見 [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md)。
@@ -204,7 +212,7 @@ npm run smoke:profile    # 在隔離 DSH_HOME 用真實 `dsh plugin add` 安裝�
 
 ## 貢獻
 
-歡迎 issue 與 pull request，請看 [CONTRIBUTING.md](CONTRIBUTING.md)。適合入手的方向：C#、Go 的 language adapter（介面很小、有文件）、自訂規格範本、更好的樣本挑選、UI 在地化、文件範例。可以從 `good first issue` 與 `help wanted` 標籤開始。
+歡迎 issue 與 pull request，請看 [CONTRIBUTING.md](CONTRIBUTING.md)。目前優先投入真實案例與審閱品質量測；新增語言、自訂渲染標題與 DSH 專屬面板暫不列入路線圖。社群仍可透過既有 adapter 介面自行擴充。可以從 `good first issue` 與 `help wanted` 標籤開始。
 
 ## 路線圖
 

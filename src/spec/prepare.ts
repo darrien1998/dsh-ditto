@@ -74,20 +74,33 @@ export function outputFor(relativePath: string): string {
 }
 
 /**
- * Three structurally different samples: the richest exporter, the module with
- * the most imports, and the smallest module. This is a deterministic spread,
- * not a confidence score.
+ * Start with a rich module, then prefer unseen folders/languages and the
+ * greatest minimum structural distance. Deterministic coverage, not confidence.
  */
 export function chooseSamples(items: SpecModule[]): string[] {
   if (items.length < 3) throw new Error('At least three modules are needed for calibration samples')
-  const scored = items.map(item => ({ item, score: item.facts.exports.length * 10 + item.facts.imports.length * 4 + Math.min(item.facts.lineCount, 100) / 100 }))
-  const selected: SpecModule[] = [[...scored].sort((a, b) => b.score - a.score || a.item.relativePath.localeCompare(b.item.relativePath))[0]!.item]
-  const importRich = [...scored].sort((a, b) => b.item.facts.imports.length - a.item.facts.imports.length || a.item.relativePath.localeCompare(b.item.relativePath)).find(candidate => !selected.some(chosen => chosen.id === candidate.item.id))?.item
-  if (importRich) selected.push(importRich)
-  const next = [...items].sort((a, b) => a.facts.lineCount - b.facts.lineCount || a.relativePath.localeCompare(b.relativePath)).find(item => !selected.some(chosen => chosen.id === item.id))
-  if (next) selected.push(next)
-  for (const item of items) if (selected.length < 3 && !selected.some(chosen => chosen.id === item.id)) selected.push(item)
-  return selected.slice(0, 3).map(item => item.id)
+  const pathOrder = (a: SpecModule, b: SpecModule) => a.relativePath < b.relativePath ? -1 : a.relativePath > b.relativePath ? 1 : 0
+  const richness = (item: SpecModule) => item.facts.exports.length * 10 + item.facts.imports.length * 4 + Math.min(item.facts.lineCount, 100) / 100
+  // Use the first folder below the shared directory, so `src/routes` and
+  // `src/services` remain distinct even when discovery starts at repository root.
+  const directories = items.map(item => item.relativePath.split('/').slice(0, -1))
+  let common = 0
+  while (directories.every(parts => parts.length > common && parts[common] === directories[0]![common])) common++
+  const folder = (item: SpecModule) => item.relativePath.split('/').slice(0, -1)[common] ?? '.'
+  const features = (item: SpecModule) => [Math.log2(1 + item.facts.exports.length), Math.log2(1 + item.facts.imports.length), Math.floor(Math.log2(Math.max(1, item.facts.lineCount)))]
+  const distance = (a: SpecModule, b: SpecModule) => features(a).reduce((sum, value, index) => sum + Math.abs(value - features(b)[index]!), 0)
+  const selected = [[...items].sort((a, b) => richness(b) - richness(a) || pathOrder(a, b))[0]!]
+  while (selected.length < 3) {
+    const folders = new Set(selected.map(folder)), languages = new Set(selected.map(item => item.language))
+    const diversity = (item: SpecModule) => [Number(!folders.has(folder(item))), Number(!languages.has(item.language)), Math.min(...selected.map(chosen => distance(item, chosen)))]
+    const candidates = items.filter(item => !selected.includes(item)).sort((a, b) => {
+      const left = diversity(a), right = diversity(b)
+      for (let index = 0; index < left.length; index++) if (left[index] !== right[index]) return right[index]! - left[index]!
+      return pathOrder(a, b)
+    })
+    selected.push(candidates[0]!)
+  }
+  return selected.map(item => item.id)
 }
 
 export function summarizeSpecItems(items: SpecModule[]): SpecBatchSummary {

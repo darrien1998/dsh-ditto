@@ -6,9 +6,9 @@ Checked on 2026-11-18 against the published npm packages and installed DSH launc
 
 | Ditto | DSH | Node.js | Evidence |
 |---|---|---|---|
-| 0.5.0 | 0.2.2-rc.4 (`next` at verification time) | >=24.9.0 | Windows/Node 24.19: full test suite, component host, clean tarball, native diagnostic execution, and real isolated profile install/boot/registration/CLI doctor |
-| 0.5.0 | 0.2.2-rc.1 (`latest` at verification time) | >=24.9.0 | Clean tarball, native executor/diagnostic call, CLI demo and doctor, and real isolated profile install/boot/active diagnostics |
-| 0.5.0 | future `next` / `alpha` | 24, 26 | Non-blocking canaries, not an automatic compatibility promise |
+| 0.6.0 | 0.2.2-rc.4 (`next` at verification time) | >=24.9.0 | Windows/Node 24.19: full test suite, component host, clean tarball, native diagnostic execution, and real isolated profile install/boot/registration/CLI doctor |
+| 0.6.0 | 0.2.2-rc.1 (`latest` at verification time) | >=24.9.0 | Clean tarball, native executor/diagnostic call, CLI demo and doctor, and real isolated profile install/boot/active diagnostics |
+| 0.6.0 | future `next` / `alpha` | 24, 26 | Non-blocking canaries, not an automatic compatibility promise |
 | 0.1–0.3 | 0.1.x | 22, 24 | Historical releases; retain matching Ditto for old profiles |
 
 CI targets Node 24 and 26 on Ubuntu and Windows. Local verification was on Windows with Node 24.19.0; this does not claim that every CI matrix entry was run locally.

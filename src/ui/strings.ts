@@ -2,6 +2,7 @@ export const supportedUiLocales = ['en', 'zh-TW'] as const
 export type UiLocale = typeof supportedUiLocales[number]
 
 const en = {
+  'Keyboard: Alt + ↓ / ↑ moves between samples. Alt + Shift + A focuses approval; Enter or Space activates it. Shortcuts stay inactive while typing.': 'Keyboard: Alt + ↓ / ↑ moves between samples. Alt + Shift + A focuses approval; Enter or Space activates it. Shortcuts stay inactive while typing.',
   'Ditto · Organise files': 'Ditto · Organise files',
   'Ditto · Code → Spec': 'Ditto · Code → Spec',
   'Skip to content': 'Skip to content',
@@ -169,6 +170,7 @@ const en = {
 export type UiStringKey = keyof typeof en
 
 const zhTW: Record<UiStringKey, string> = {
+  'Keyboard: Alt + ↓ / ↑ moves between samples. Alt + Shift + A focuses approval; Enter or Space activates it. Shortcuts stay inactive while typing.': '鍵盤：Alt + ↓ / ↑ 切換樣本；Alt + Shift + A 移至核准按鈕，再按 Enter 或空白鍵執行。輸入文字時不啟用快捷鍵。',
   'Ditto · Organise files': 'Ditto · 整理檔案',
   'Ditto · Code → Spec': 'Ditto · 程式碼 → 規格',
   'Skip to content': '跳至主要內容',

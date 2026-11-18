@@ -36,24 +36,19 @@ Ditto stays small, understandable, safe, DSH-native, and review-first. The roadm
 - Three built-in task guidance templates and saved approved examples
 - Durable local efficiency counters and a deterministic transport benchmark in CI
 
-## Next — help wanted
+## 0.6 — review quality and keyboard access
 
-These are scoped so a contributor can take one without touching the safety core. Look for the matching labels in the issue tracker.
+- Deterministic sample spread across folders/languages/structural shapes, with a regression fixture where the old heuristic chose only routes
+- Keyboard sample navigation and approval focus in both review pages, localised hints, and input/composition/busy-state protections
+- Product scope narrowed to the existing review workflow; see [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md)
 
-| Area | Item | Label |
-|---|---|---|
-| Language adapters | C#, Go — one file each behind the `LanguageAdapter` seam | `language adapter`, `good first issue` |
-| Spec templates | Custom section sets and headings beyond the shipped task guidance, validated the same way as today | `enhancement` |
-| Sample selection | Better spread than "most exports / most imports / smallest" — for example by folder, by framework role, or by duplication | `enhancement`, `help wanted` |
-| DSH Web | A native review panel in the DSH web UI instead of the loopback page | `ui`, `dsh compatibility` |
-| Review page | Localisation (zh-TW first), keyboard flow, diff view for sample edits | `ui`, `good first issue` |
-| Documentation | Real-world examples with different repository shapes; a screencast of the browser demo | `documentation`, `good first issue` |
-| Community results | Evaluation write-ups following [EVALUATION.md](EVALUATION.md) | `documentation` |
+## Next — evidence from real work
 
-## Later, maybe
+Real-world Code → Spec examples and human review-quality measurements remain tracked in #9. Publish the model, corrections and method; synthetic transport results do not substitute for these.
 
-- Batches larger than 50 modules as linked sub-batches
-- Per-user default instructions and templates
+## Deferred scope
+
+C#/Go adapters, arbitrary renderer section sets/headings and a DSH-specific review panel are not planned for the current product. Existing adapters and templates remain supported. Batches above 50 modules and per-user defaults need evidence of demand before being scheduled.
 
 ## Not planned
 
