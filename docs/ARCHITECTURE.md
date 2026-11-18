@@ -1,5 +1,7 @@
 # Architecture
 
+Version 0.5 adds `SpecProductivity` orchestration over the existing specification core: bounded complete-module work, durable identity-bound receipts, atomic multi-draft validation, compact deltas, reviewed reuse, task guidance and local counters. Sidecars live in `spec-work`, `spec-templates`, and `spec-metrics` under the protected state root. Batch mutations use the existing cross-process lock. Guidance and environment snapshots participate in the batch digest; approval never transfers between batches. See [EFFICIENCY.md](EFFICIENCY.md) for protocol and cache boundaries.
+
 Ditto is a native DeepSeek Harness (DSH) plugin. This document describes what runs where, what the plugin depends on, how state and approvals work, and what the boundaries are. For the safety guarantees and the tests behind them see [SAFETY.md](SAFETY.md); for the tool reference see [TOOLS.md](TOOLS.md).
 
 ## The shape of the product

@@ -28,6 +28,14 @@ Ditto stays small, understandable, safe, DSH-native, and review-first. The roadm
 - Cancellation checked before approval and after a delayed grant; invalid doctor folders and CLI options rejected
 - Real-profile smoke requires successful active registration checks, not only a running process
 
+## 0.5 — less repetitive agent work
+
+- 23 native tools: bounded multi-module work, atomic draft submission and compact deltas
+- Exact-context handles with explicit restoration after session reset or handoff
+- Fingerprinted draft reuse as newly reviewed candidates, without transferring approvals
+- Three built-in task guidance templates and saved approved examples
+- Durable local efficiency counters and a deterministic transport benchmark in CI
+
 ## Next — help wanted
 
 These are scoped so a contributor can take one without touching the safety core. Look for the matching labels in the issue tracker.
@@ -35,7 +43,7 @@ These are scoped so a contributor can take one without touching the safety core.
 | Area | Item | Label |
 |---|---|---|
 | Language adapters | C#, Go — one file each behind the `LanguageAdapter` seam | `language adapter`, `good first issue` |
-| Spec templates | User-selectable section sets and headings (for example an "API reference" template or a "behaviour before refactor" template), validated the same way as today | `enhancement` |
+| Spec templates | Custom section sets and headings beyond the shipped task guidance, validated the same way as today | `enhancement` |
 | Sample selection | Better spread than "most exports / most imports / smallest" — for example by folder, by framework role, or by duplication | `enhancement`, `help wanted` |
 | DSH Web | A native review panel in the DSH web UI instead of the loopback page | `ui`, `dsh compatibility` |
 | Review page | Localisation (zh-TW first), keyboard flow, diff view for sample edits | `ui`, `good first issue` |

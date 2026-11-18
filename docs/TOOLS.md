@@ -10,6 +10,11 @@ Skill: `ditto` — Review-first batch work. Use when a request covers a whole fo
 
 | Tool | Workflow | Stage | Writes | Approval |
 |---|---|---|---|---|
+| `ditto_spec_work` | Code → Spec | Bounded work | Work receipts and optimized-path counters under stateRoot only. | None. Remaining modules still require current sample approval. |
+| `ditto_spec_submit_many` | Code → Spec | Atomic draft submission | Batch metadata and optimized-path counters only. | None. No Markdown output is written. |
+| `ditto_spec_reuse` | Code → Spec | Incremental reuse | New batch review candidates only; never transfers approval or output outcomes. | None for preparing candidates. Every new batch still requires sample and final-preview approval. |
+| `ditto_spec_report` | Code → Spec | Measured results | Nothing. | None. |
+| `ditto_spec_template` | Code → Spec | Task templates | One versioned local template when saving. | Saving requires current sample approval; a template never authorizes a new batch. |
 | `ditto_doctor` | Diagnostics | Diagnostics | One temporary writability probe, removed immediately; no plans or output files. | None. |
 | `ditto_preview` | File organisation | Discover / preview | Durable plan metadata under stateRoot only; no source or output files. | None. Read-only preview. |
 | `ditto_revise` | File organisation | Review / edit | Durable plan metadata only. | None. Only submit edits the user asked for. |
@@ -31,6 +36,136 @@ Skill: `ditto` — Review-first batch work. Use when a request covers a whole fo
 
 ## Code → Spec
 
+### `ditto_spec_work`
+
+**Purpose.** Return up to five complete module contexts, shared versioned guidance, an opaque submission receipt, and the next action within an explicit UTF-8 byte budget.
+
+**Stage.** Bounded work
+
+**Writes.** Work receipts and optimized-path counters under stateRoot only.
+
+**Approval.** None. Remaining modules still require current sample approval.
+
+**Failure cases.** Invalid budgets, shared guidance larger than the budget, or unauthorized batch roots. Oversized modules explicitly defer to evidence paging.
+
+**Description shown to the agent.**
+
+> Get the next bounded group of complete module evidence (one to five modules) and an opaque work_id for atomic submission. Phase and next action are server-owned. Shared instructions and approved examples are included unless known_context exactly matches context_id and that context is still present in THIS model conversation. Omit known_context after a new session, context reset, or agent handoff. Oversized modules explicitly require ditto_spec_module evidence paging; never infer unseen source. Writes only a work receipt and observational counters.
+
+**Input.**
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `batch_id` | string | yes |  |
+| `max_modules` | integer | no | 1 to 5; default 3. |
+| `max_bytes` | integer | no | UTF-8 JSON response budget, 4000 to 192000; default 32000. |
+| `known_context` | string | no | Previously read context_id, only while its exact context remains available in this conversation. |
+
+**Output.** A JSON object; the tool result is the lossless JSON rendered as text.
+
+### `ditto_spec_submit_many`
+
+**Purpose.** Validate one to five drafts from an exact work receipt and commit all of them together with a compact changed-items result.
+
+**Stage.** Atomic draft submission
+
+**Writes.** Batch metadata and optimized-path counters only.
+
+**Approval.** None. No Markdown output is written.
+
+**Failure cases.** Stale receipt, duplicate or unrelated module ids, invalid JSON draft or citations. Any invalid entry leaves every draft unchanged.
+
+**Description shown to the agent.**
+
+> Atomically validate one to five structured drafts using the work_id from ditto_spec_work. Every module must belong to that exact receipt; a stale or partially invalid submission changes no draft. Returns only changed items, counts, and the next action. No source or Markdown files are written. After success get a new work receipt; do not reuse a stale work_id.
+
+**Input.**
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `work_id` | string | yes |  |
+| `drafts` | array of { module_id: string, draft: any, metadata: object } | yes |  |
+
+**Output.** A JSON object; the tool result is the lossless JSON rendered as text.
+
+### `ditto_spec_reuse`
+
+**Purpose.** Reuse reviewed drafts from an explicit prior batch after validating source, environment, static dependencies, task guidance, and current sample identity.
+
+**Stage.** Incremental reuse
+
+**Writes.** New batch review candidates only; never transfers approval or output outcomes.
+
+**Approval.** None for preparing candidates. Every new batch still requires sample and final-preview approval.
+
+**Failure cases.** Stale identity, changed manifests or source since discovery, different source folder/instructions/template, or changed approved examples. Ambiguous or changed modules are skipped visibly.
+
+**Description shown to the agent.**
+
+> Reuse valid reviewed drafts from an explicit previous batch of the same source folder. Checks current source hashes, dependency manifests, static local dependency closure, instructions, template, and approved sample identity. Before sample approval it reuses only samples as NEW review candidates; call it again after renewed sample approval for remaining modules. Never transfers approval or output outcomes. Returns reused and skipped items; changed or ambiguous modules need new drafts.
+
+**Input.**
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `batch_id` | string | yes |  |
+| `revision` | integer | yes |  |
+| `digest` | string | yes |  |
+| `source_batch_id` | string | yes |  |
+
+**Output.** A JSON object; the tool result is the lossless JSON rendered as text.
+
+### `ditto_spec_report`
+
+**Purpose.** Read optimized work/submit call counts, exact UTF-8 response bytes, explicitly omitted shared context, reuse coverage, and outcomes.
+
+**Stage.** Measured results
+
+**Writes.** Nothing.
+
+**Approval.** None.
+
+**Failure cases.** Unknown or unauthorized batch, corrupt metrics. Tokens, cost savings, human time, and model quality are explicitly unmeasured.
+
+**Description shown to the agent.**
+
+> Read durable optimized-path tool-call counts, exact UTF-8 response bytes, omitted repeated context bytes, reuse coverage, and batch outcomes. Counters cover work/submit_many only. Tokens, prices, time saved, and model quality are not measured and are never invented. Launches no model or network calls.
+
+**Input.**
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `batch_id` | string | yes |  |
+
+**Output.** A JSON object; the tool result is the lossless JSON rendered as text.
+
+### `ditto_spec_template`
+
+**Purpose.** List/get built-in or saved task guidance, or save approved sample instructions and examples for a new task.
+
+**Stage.** Task templates
+
+**Writes.** One versioned local template when saving.
+
+**Approval.** Saving requires current sample approval; a template never authorizes a new batch.
+
+**Failure cases.** Unapproved samples, invalid name/id, corrupt template digest, or more than 100 templates in a list request.
+
+**Description shown to the agent.**
+
+> List/get built-in or saved task templates, or save current approved sample instructions and examples as a versioned local template. Built-ins: overview, api-reference, behavior-before-refactor. Pass template_id to ditto_spec_create to reuse guidance in a new batch. Style examples never supply source evidence, and every new batch still requires sample and final-preview approval.
+
+**Input.**
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `action` | enum: `list`, `get`, `save` | yes |  |
+| `template_id` | string | no |  |
+| `batch_id` | string | no | Current sample-approved batch for save. |
+| `name` | string | no | Plain-text saved template name, 1 to 80 characters. |
+
+**Output.** A JSON object; the tool result is the lossless JSON rendered as text.
+
 ### `ditto_spec_create`
 
 **Purpose.** Scan a repository folder, select three representative sample modules, and start a durable batch.
@@ -45,7 +180,7 @@ Skill: `ditto` — Review-first batch work. Use when a request covers a whole fo
 
 **Description shown to the agent.**
 
-> Start one code-to-specification batch for a repository folder (TypeScript/JavaScript today). It reads a bounded set of source files and writes only local batch metadata; it never changes source files or Markdown output. The batch contains exactly three representative sample module ids. Next: ditto_spec_queue with phase=samples, then ditto_spec_module to obtain evidence and ditto_spec_submit to submit one structured draft per sample. Ditto makes no hidden model call: the current DSH agent writes each draft from the returned evidence.
+> Start a reviewed specification batch for TypeScript/JavaScript, Java, or Python. Reads source text and writes metadata only. Optionally select a saved or built-in template. Next call ditto_spec_work for a bounded group and ditto_spec_submit_many for atomic drafts. Existing queue/module/submit tools remain available for fine-grained evidence paging. The DSH agent writes drafts; Ditto never calls a model itself.
 
 **Input.**
 
@@ -54,6 +189,7 @@ Skill: `ditto` — Review-first batch work. Use when a request covers a whole fo
 | `source_root` | string | yes | Existing repository folder inside the Ditto workspace. It is read-only. |
 | `output_root` | string | yes | Fresh separate output folder inside the Ditto workspace. Markdown specifications are written here only by ditto_spec_apply. |
 | `instructions` | string | no | Optional user-approved batch guidance, up to 8,000 characters. It is included in every draft request and has no executable meaning. |
+| `template_id` | string | no | Optional built-in or saved task template id from ditto_spec_template. |
 
 **Output.** A JSON object; the tool result is the lossless JSON rendered as text.
 
@@ -108,6 +244,7 @@ Skill: `ditto` — Review-first batch work. Use when a request covers a whole fo
 | `module_id` | string | yes | A pending module id returned by ditto_spec_queue. |
 | `evidence_offset` | integer | no | Zero-based evidence-chunk offset; default 0. Pass nextEvidenceOffset to continue. |
 | `evidence_limit` | integer | no | Evidence chunks to return; default and maximum come from profile configuration. |
+| `known_context` | string | no | Optional context_id already read and still available in this conversation; omits repeated examples only on exact match. |
 
 **Output.** A JSON object; the tool result is the lossless JSON rendered as text.
 
@@ -137,6 +274,7 @@ Skill: `ditto` — Review-first batch work. Use when a request covers a whole fo
 | `module_id` | string | yes | Pending module id from ditto_spec_queue. |
 | `draft` | json | yes | One JSON SpecDraft. title, purpose, responsibilities, publicApi, dependencies, and errors use text plus citations. confirmations use question plus optional relatedEvidenceIds. Never include a path, Markdown, HTML, script, or command. |
 | `metadata` | object | no | Optional bounded string-only audit metadata about this draft (for example the model name). Do not include credentials or provider secrets. |
+| `compact` | boolean | no | Return only the changed module, counts and next action rather than a full status page. |
 
 **Output.** A JSON object; the tool result is the lossless JSON rendered as text.
 

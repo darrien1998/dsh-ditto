@@ -27,26 +27,28 @@ AI 做一份很快。Ditto 解決的是做 50 份時，你不必盯 50 次。
 Ditto 是原生 DSH 插件，一行指令裝進 DSH profile：
 
 ```bash
-dsh plugin --profile web add dsh-ditto
+dsh plugin --profile web add https://github.com/darrien1998/dsh-ditto/releases/download/v0.5.0/dsh-ditto-0.5.0.tgz
 ```
+
+以上 GitHub 發行檔明確安裝 **0.5.0**。npm 套件庫目前仍是舊版，npm 徽章不代表 GitHub 發行版。
 
 `dsh plugin` 會在 profile 目錄內轉呼叫 pnpm，所以 PATH 上要有 [pnpm](https://pnpm.io)。需要的話把 `web` 換成 `headless`、`acp` 或你自訂的 profile 名稱。
 
 | | |
 |---|---|
-| **更新** | `dsh plugin --profile web update dsh-ditto` |
+| **更新** | `dsh plugin --profile web add https://github.com/darrien1998/dsh-ditto/releases/download/v0.5.0/dsh-ditto-0.5.0.tgz` |
 | **移除** | `dsh plugin --profile web remove dsh-ditto` |
 | **檢查** | `dsh plugin --profile web exec dsh-ditto doctor` |
 
 doctor 用白話輸出檢查結果：
 
 ```text
-✓ Ditto 0.4.0
+✓ Ditto 0.5.0
 ✓ Node.js 24.19.0
 ✓ dsh 0.2.2-rc.4 detected
 ✓ pnpm 11.25.0 detected (used by "dsh plugin")
 ✓ dsh-ditto is installed in profile "web" and listed in its bundles
-✓ 18 of 18 tools registered
+✓ 23 of 23 tools registered
 ✓ skill "ditto" registered
 ✓ stateRoot /your/project/.dsh-ditto is writable
 ✓ allowedSourceRoots /your/project
@@ -56,7 +58,7 @@ doctor 用白話輸出檢查結果：
 
 需求：Node.js **24.9.0 以上**，DSH **0.2.2-rc.1 或 0.2.2-rc.4**（見[相容性](#相容性)）。0.4 版更新了宿主 API 基準；DSH 0.1 的 profile 請使用 Ditto 0.3。
 
-DSH 0.2 只在插件執行環境中解析宿主套件。獨立 CLI 可能顯示無法掛載元件，啟動 profile 也不會建立舊版 fallback 連結。請讓 DSH 代理呼叫 **`ditto_doctor`**，檢查實際註冊的 18 個工具、技能、資料夾與審批設定；自動化診斷可使用 `dsh-ditto doctor --json`。
+DSH 0.2 只在插件執行環境中解析宿主套件。獨立 CLI 可能顯示無法掛載元件，啟動 profile 也不會建立舊版 fallback 連結。請讓 DSH 代理呼叫 **`ditto_doctor`**，檢查實際註冊的 23 個工具、技能、資料夾與審批設定；自動化診斷可使用 `dsh-ditto doctor --json`。
 
 ## 快速開始
 
@@ -69,9 +71,20 @@ DSH 0.2 只在插件執行環境中解析宿主套件。獨立 CLI 可能顯示�
 想先看流程再安裝？demo 不需要模型、不需要 API key：
 
 ```bash
-npx dsh-ditto demo --headless   # 終端機逐步輸出，16 個合成模組
-npx dsh-ditto demo              # 同一批工作，在本機瀏覽器審閱頁操作
+npx --yes --package=https://github.com/darrien1998/dsh-ditto/releases/download/v0.5.0/dsh-ditto-0.5.0.tgz dsh-ditto demo --headless   # 終端機逐步輸出，16 個合成模組
+npx --yes --package=https://github.com/darrien1998/dsh-ditto/releases/download/v0.5.0/dsh-ditto-0.5.0.tgz dsh-ditto demo              # 同一批工作，在本機瀏覽器審閱頁操作
 ```
+
+## 減少重複上下文與工具往返
+
+0.5 版一次交付多個模組的完整證據，原子提交多份草稿，回傳精簡變更摘要。只有 agent 仍持有相同 `context_id` 的內容時，才可省略共用樣本；對話重設或交接後，不傳 `known_context` 即會恢復完整上下文。
+
+- **批次作業**：`ditto_spec_work` → `ditto_spec_submit_many`，預設每次三個模組；過大的證據改走既有分頁。
+- **增量重用**：依來源、相依內容、環境 manifest、指示、範本與核准樣本判斷是否可沿用。沿用內容仍是待審草稿，核准不會轉移。
+- **任務範本**：內建概覽、API 參考、重構前行為說明；也能保存已核准樣本供下次參考。
+- **可驗證報告**：`ditto_spec_report` 本機記錄新流程的呼叫次數、回傳 bytes 與重用數；不虛構 token 或費用。
+
+30 個合成模組的可重現測試：工具呼叫 **71 → 28**，JSON 回傳約 **252 KB → 55 KB**，Markdown 相同、來源未變。這是工具傳輸量測，不代表模型 token、費用、速度或語意品質的改善比例。詳見[方法、限制與流程](docs/EFFICIENCY.md)。
 
 ## 範例：程式碼 → 規格
 
@@ -157,7 +170,7 @@ Ditto 是 DSH 插件，不是一份 Markdown skill。套件包含：
 |---|---|
 | Cordis service | `dsh-ditto/dsh`——一個 service，在 host 公開的 `skills` 與 `tools` service 上註冊 skill 與工具；卸載 bundle 就全部移除 |
 | Skill | `skills/ditto/SKILL.md`——agent 讀的路由層（模型與使用者皆可呼叫） |
-| 原生工具 | 18 個具型別的工具：9 個給程式碼 → 規格、8 個給檔案整理，以及 `ditto_doctor` 診斷工具（[參考](docs/TOOLS.md)） |
+| 原生工具 | 23 個具型別的工具：14 個給程式碼 → 規格、8 個給檔案整理，以及 `ditto_doctor` 診斷工具（[參考](docs/TOOLS.md)） |
 | 確定性核心 | 掃描、RE2 擷取、安全路徑渲染、證據／引用驗證、sidecar 與 ZIP 串流、hash、revision／digest 閘門、持久狀態 |
 | 本機審閱頁 | 選用的 loopback-only 瀏覽器頁面，供 demo 與 `dsh-ditto serve` 使用 |
 
@@ -167,9 +180,9 @@ Ditto 只依賴公開的 DSH API（`@deepseek-ai/cordis`、`@deepseek-ai/dsh-too
 
 | Ditto | DSH | Node.js | 狀態 |
 |---|---|---|---|
-| 0.4.0 | 0.2.2-rc.4（`next`） | ≥24.9.0 | 元件、打包安裝及真實隔離 profile 驗證 |
-| 0.4.0 | 0.2.2-rc.1（`latest`） | ≥24.9.0 | 乾淨安裝、原生診斷與真實隔離 profile 驗證 |
-| 0.4.0 | `next`／`alpha` | 24、26 | canary CI；不保證未來版本自動相容 |
+| 0.5.0 | 0.2.2-rc.4（`next`） | ≥24.9.0 | 元件、打包安裝及真實隔離 profile 驗證 |
+| 0.5.0 | 0.2.2-rc.1（`latest`） | ≥24.9.0 | 乾淨安裝、原生診斷與真實隔離 profile 驗證 |
+| 0.5.0 | `next`／`alpha` | 24、26 | canary CI；不保證未來版本自動相容 |
 | 0.1–0.3 | 0.1.x | 22、24 | 歷史版本，請參照對應版本文件 |
 
 DSH 仍在快速開發；實際測了什麼、如何回報 breaking change，見 [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md)。

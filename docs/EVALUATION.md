@@ -1,12 +1,12 @@
 # Evaluation
 
-Ditto does not ship benchmarks, and CI never calls a model. This page records what *could* be measured, how, and what we deliberately do not claim.
+Ditto ships a deterministic native-tool transport benchmark; CI never calls a model. See [EFFICIENCY.md](EFFICIENCY.md) for the reproducible method and bounded claims. This page also records the model and human evaluation still needed.
 
 ## What we claim, and what we do not
 
 We claim that Ditto makes batch work **reviewable, consistent, and safe to apply**: representative samples, a full preview, evidence on every claim, explicit approval, and safe writes. Those properties are deterministic and tested (see [SAFETY.md](SAFETY.md)).
 
-We do not claim that Ditto makes a model smarter, that generated specifications are semantically correct, or any percentage improvement. Users bring their own model and their own repository; the useful numbers come from real use, not from a synthetic benchmark.
+We do not claim that Ditto makes a model smarter, that generated specifications are semantically correct, or any percentage improvement in model tokens, cost, speed or quality. Users bring their own model and their own repository; the useful numbers come from real use, not from a synthetic benchmark.
 
 ## What is worth measuring
 

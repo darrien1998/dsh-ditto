@@ -1,5 +1,6 @@
 import { defineTool } from '@deepseek-ai/dsh-tools'
 import { countConfirmations, hasCurrentSampleApproval } from '../../core/index.js'
+import { contextIdentity } from '../../spec/productivity.js'
 import type { DshDitto } from '../service.js'
 import { checkNotAborted, json, jsonOutput, requireHumanApproval } from './shared.js'
 
@@ -11,16 +12,17 @@ export function specTools(service: DshDitto) {
 function createTool(service: DshDitto) {
   return defineTool({
     name: 'ditto_spec_create',
-    description: 'Start one code-to-specification batch for a repository folder (TypeScript/JavaScript today). It reads a bounded set of source files and writes only local batch metadata; it never changes source files or Markdown output. The batch contains exactly three representative sample module ids. Next: ditto_spec_queue with phase=samples, then ditto_spec_module to obtain evidence and ditto_spec_submit to submit one structured draft per sample. Ditto makes no hidden model call: the current DSH agent writes each draft from the returned evidence.',
+    description: 'Start a reviewed specification batch for TypeScript/JavaScript, Java, or Python. Reads source text and writes metadata only. Optionally select a saved or built-in template. Next call ditto_spec_work for a bounded group and ditto_spec_submit_many for atomic drafts. Existing queue/module/submit tools remain available for fine-grained evidence paging. The DSH agent writes drafts; Ditto never calls a model itself.',
     parameters: {
       source_root: { type: 'string', required: true, description: 'Existing repository folder inside the Ditto workspace. It is read-only.' },
       output_root: { type: 'string', required: true, description: 'Fresh separate output folder inside the Ditto workspace. Markdown specifications are written here only by ditto_spec_apply.' },
       instructions: { type: 'string', description: 'Optional user-approved batch guidance, up to 8,000 characters. It is included in every draft request and has no executable meaning.' },
+      template_id: { type: 'string', description: 'Optional built-in or saved task template id from ditto_spec_template.' },
     },
     output: jsonOutput,
     async execute(args, exec) {
       checkNotAborted(exec.signal)
-      return json(service.specView(await service.createSpec({ sourceRoot: args.source_root, outputRoot: args.output_root, instructions: args.instructions }), 0))
+      return json(service.specView(await service.createSpec({ sourceRoot: args.source_root, outputRoot: args.output_root, instructions: args.instructions, templateId: args.template_id }), 0))
     },
   })
 }
@@ -59,6 +61,7 @@ function moduleTool(service: DshDitto) {
       module_id: { type: 'string', required: true, description: 'A pending module id returned by ditto_spec_queue.' },
       evidence_offset: { type: 'integer', description: 'Zero-based evidence-chunk offset; default 0. Pass nextEvidenceOffset to continue.' },
       evidence_limit: { type: 'integer', description: 'Evidence chunks to return; default and maximum come from profile configuration.' },
+      known_context: { type: 'string', description: 'Optional context_id already read and still available in this conversation; omits repeated examples only on exact match.' },
     },
     output: jsonOutput,
     async execute(args, exec) {
@@ -77,7 +80,8 @@ function moduleTool(service: DshDitto) {
         request: {
           module: { id: item.id, relativePath: item.relativePath, language: item.language, sourceHash: item.sourceHash, outputPath: item.outputPath, facts: item.facts, evidence },
           instructions: batch.recipe.instructions,
-          approvedSamples: isSample ? [] : approvedSamples(batch.recipe.approvedSamples),
+          ...(args.known_context === contextIdentity(batch) ? {} : { template: batch.recipe.guidance ?? null }),
+          approvedSamples: isSample || args.known_context === contextIdentity(batch) ? [] : approvedSamples(batch.recipe.approvedSamples),
           draftContract: { version: 1, moduleId: item.id, requiredRule: 'Every factual field needs one or more evidence ids returned for this module. Unsupported or uncertain statements belong in confirmations as questions; related evidence ids are optional.' },
         },
         evidencePage: { offset, returned: evidence.length, total: item.evidence.length, ...(offset + evidence.length < item.evidence.length ? { nextEvidenceOffset: offset + evidence.length } : {}) },
@@ -97,11 +101,13 @@ function submitTool(service: DshDitto) {
       module_id: { type: 'string', required: true, description: 'Pending module id from ditto_spec_queue.' },
       draft: { type: 'json', required: true, description: 'One JSON SpecDraft. title, purpose, responsibilities, publicApi, dependencies, and errors use text plus citations. confirmations use question plus optional relatedEvidenceIds. Never include a path, Markdown, HTML, script, or command.' },
       metadata: { type: 'object', additionalProperties: true, description: 'Optional bounded string-only audit metadata about this draft (for example the model name). Do not include credentials or provider secrets.' },
+      compact: { type: 'boolean', description: 'Return only the changed module, counts and next action rather than a full status page.' },
     },
     output: jsonOutput,
     async execute(args, exec) {
       checkNotAborted(exec.signal)
-      return json(service.specView(await service.submitSpec(args.batch_id, args.revision, args.digest, args.module_id, args.draft, args.metadata as Record<string, string> | undefined), 0))
+      const batch = await service.submitSpec(args.batch_id, args.revision, args.digest, args.module_id, args.draft, args.metadata as Record<string, string> | undefined)
+      return json(args.compact ? service.productivity.delta(batch, [args.module_id]) : service.specView(batch, 0))
     },
   })
 }

@@ -44,6 +44,19 @@ Use `ditto_doctor` when a tool fails because of configuration, component compati
 
 ## Workflow A — Code → Spec (TypeScript / JavaScript, Java, Python)
 
+### Preferred bounded workflow (0.5)
+
+- Optionally list or get `ditto_spec_template`; pass its `template_id` to `ditto_spec_create`. A saved template contains style guidance, never proof of source behaviour or approval of this batch.
+- Call `ditto_spec_work` for the next group of complete evidence contexts. Draft only the returned modules, using their own evidence ids, then atomically submit them with `ditto_spec_submit_many` and the opaque `work_id`. The server supplies the phase, identity, counts, and next action.
+- Retain the returned shared context. Only send `known_context: context_id` while the exact instructions/examples remain available in this model conversation. After compaction that removes them, a new session, or an agent handoff, omit it to restore full context. Never pretend that an identifier alone carries its content.
+- If a module is deferred as too large, use `ditto_spec_module` evidence paging and `ditto_spec_submit` with `compact: true`. Never omit evidence to make a module fit. Increase `max_bytes` for large shared examples within the documented bound.
+- Show the three rendered samples and explicitly obtain their approval with `ditto_spec_approve`, then continue work groups for remaining modules. Always show the complete final preview before applying with the existing approval gate.
+- For a later run, explicitly identify the previous batch and call `ditto_spec_reuse` before sample approval, review the reused sample candidates, approve the new samples, then call reuse again for remaining modules. Changed/ambiguous items need fresh drafts. Old approval and output statuses never transfer.
+- `ditto_spec_template` action `save` preserves approved instructions and examples as a versioned local template. Template changes require new review.
+- At completion show `ditto_spec_report`: actual optimized-path calls, UTF-8 bytes and reused modules. These are not token, price, runtime, or semantic-quality measurements. No model API is called by Ditto.
+
+### Fine-grained workflow and evidence paging
+
 1. `ditto_spec_create` with the repository folder and a fresh output folder. It returns the batch identity and three sample module ids.
 2. For each sample: `ditto_spec_queue` (phase `samples`) → `ditto_spec_module` for its evidence → write a JSON `SpecDraft` from that evidence only → `ditto_spec_submit`.
 3. Show the three rendered samples (`ditto_spec_review`). Ask the user to edit or accept them. Save edits with `ditto_spec_revise_samples`.

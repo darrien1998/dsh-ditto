@@ -61,7 +61,11 @@ export interface SpecRecipe {
   approvedSamples: Array<{ moduleId: string; markdown: string }>
   /** Set only by the explicit approval transition; it binds examples to this revision. */
   approvalRevision?: number
+  /** Reviewed style examples; these never approve the new batch or supply its evidence. */
+  guidance?: SpecGuidance
 }
+
+export interface SpecGuidance { id: string; name: string; digest: string; examples: Array<{ moduleId: string; markdown: string }> }
 
 export interface SpecBatchSummary { total: number; pending: number; sampleReady: number; approved: number; ready: number; applied: number; needsReview: number; rejected: number; failed: number }
 export interface SpecExclusion { relativePath: string; reason: 'ignored-folder' | 'state-folder' | 'non-code' | 'declaration-file' | 'generated' | 'too-large' | 'symlink' }
@@ -73,6 +77,8 @@ export interface SpecBatch {
   revision: number
   digest: string
   createdAt: string
+  /** Dependency/environment identity captured for conservative cross-batch reuse. */
+  environmentHash?: string
   sourceRoot: string
   outputRoot: string
   recipe: SpecRecipe
@@ -92,6 +98,8 @@ export interface CreateSpecBatchOptions {
   outputRoot: string
   stateRoot?: string
   instructions?: string
+  environmentHash?: string
+  guidance?: SpecGuidance
   minModules?: number
   maxModules?: number
   /** Language adapters to discover with; defaults to the adapters shipped with Ditto. */
